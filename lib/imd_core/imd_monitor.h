@@ -30,10 +30,22 @@ struct Config {
   float earthMismatchFrac = 0.05f;//   ...or this fraction of Vbus, whichever is larger
   uint8_t earthFaultCycles = 2;
   uint8_t badCyclesForError = 3;  // unsolvable cycles in a row -> device error
+  // Pack-voltage transients (acceleration, regen): the chassis node lags a VBUS change through the
+  // Y-capacitance, and the ADC reads VBUS and VE ~11 ms apart. A phase is only used if VBUS stayed
+  // within vbusStableFrac for the whole phase; otherwise the phase starts again.
+  float vbusStableFrac = 0.005f;
+  // After maxRestarts restarts in a row, finish the phase anyway with a looser limit and twice the
+  // averaging window (reported as a "relaxed" cycle) - e.g. steady driving with ripple on the pack.
+  uint8_t maxRestarts = 5;
+  float vbusStableRelaxed = 0.02f;
+  // No valid measurement for this long while HV is live and not inhibited -> "stale" warning.
+  // Outputs keep showing the last valid result (a warning, not a fault).
+  uint32_t staleMs = 60000;
 };
 
 struct Inputs {
   float vbus = 0, ve = 0, vke = 0, viso = 0;
+  float vbusDelta = 0;            // |VBUS read before VE - VBUS read after VKE| in this sample set
   bool cont1 = false, cont2 = false, inhibit = false;
 };
 
@@ -58,6 +70,11 @@ struct Status {
   uint32_t cycles = 0;
   uint8_t earthCount = 0, badCount = 0, lowCount = 0;
   bool lastSettled = false;  // last cycle settled (vs. timed out)
+  bool lastRelaxed = false;  // last cycle needed the relaxed VBUS-stability limit
+  bool stale = false;        // no valid measurement for cfg.staleMs while HV live (degraded)
+  uint32_t ageMs = 0;        // time since the last valid measurement
+  uint8_t restarts = 0;      // consecutive VBUS-transient restarts of the current phase
+  uint32_t transientRestarts = 0;  // total, for diagnostics
 };
 
 // Tracks one phase: windowed means of f = Vn/Vbus, settles or times out.
@@ -90,7 +107,7 @@ class Monitor {
  private:
   void restart(uint32_t now);
   void startPhase(Phase p, uint32_t now);
-  void finishCycle(const Inputs& in);
+  void finishCycle(const Inputs& in, uint32_t now);
   void updateOutputs();
 
   Config cfg_;
@@ -101,6 +118,9 @@ class Monitor {
   bool scopeAtStart_ = false;
   bool earthMismatch_ = false;
   bool sstDone_ = false;
+  float vbusMin_ = 0, vbusMax_ = 0;   // VBUS range seen in the current phase
+  bool cycleRelaxed_ = false;
+  uint32_t lastValidMs_ = 0;
 };
 
 }  // namespace imd

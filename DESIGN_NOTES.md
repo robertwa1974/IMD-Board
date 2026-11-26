@@ -90,9 +90,14 @@ E carries the R0 switches; KE only has its own divider. Both should read the sam
 
 ## Barrier and supplies
 
-- **UCC12050** (U3; UCC12051-Q1 for automotive): SEL tied to VISO -> 5.0 V. EN pulled up, SYNC to GNDP
-  (internal oscillator; SYNC to the ADC clock is a later option). Datasheet: 1697 VDC working,
-  ~3.5 pF barrier, no-load input 50 mA at 5 V.
+- **UCC12050** (U3; UCC12051-Q1 for automotive): SEL tied to VISO -> 5.0 V (datasheet: 4.7-5.3 V,
+  above the TPSI2140's 4.4 V UVLO). EN pulled up; SYNC (pin 4) tied to GNDP for the internal
+  oscillator; ~SYNC_OK (pin 5, open-drain diagnostic) deliberately unconnected. Datasheet: 1697 VDC
+  working, ~3.5 pF barrier, no-load input 50 mA at 5 V.
+  Input and output caps (C10, C12) are 1206 10 uF 50 V X5R: an 0805 10 uF loses roughly half its value
+  at 5 V bias, and the datasheet asks for a real 10 uF on each side.
+- **12 V input**: the stacking header (12V_STACK, via D1) and the stand-alone J2 (12V_J2, via D8) are
+  diode-ORed into VLV, so connecting both can never back-feed the economizer's 12V_PROT through its PTC.
 - **ISO7763F** (U4): 3 channels HV->LV (MHS, OKHS, IMD_OK) and 3 LV->HV (CONT1, CONT2, INHIBIT).
   F suffix = outputs default LOW when the other side is dead, so a dead HV side gives MHS = no
   signal, OKHS = low, IMD_OK = low. 1500 Vrms / 2121 VDC working.
@@ -141,7 +146,7 @@ Within the 1 W budget and the economizer's 0.2 A PTC.
 | Ref | Part | Pins |
 |---|---|---|
 | J1 | 2x6 elevated male header | Matches economizer J4 (table in HANDOFF.md section 6) |
-| J2 | Micro-Fit 3.0 1x4 | 12 V, GND, MHS, OKHS: stand-alone only (do not feed 12 V on both J1 and J2) |
+| J2 | Micro-Fit 3.0 1x4 | 12 V, GND, MHS, OKHS: for stand-alone use. 12 V is diode-ORed with J1, so both may be connected |
 | J3 | Micro-Fit 3.0 1x3 (600 V rated) | 1 HV+ (pack side, after the pack fuse), 3 HV-. Pin 2 unloaded, no copper |
 | J4 | Micro-Fit 3.0 1x2 | E, KE: two separate wires to chassis |
 | J5 | 1x5 2.54 mm | SWD (HV side) |
@@ -171,8 +176,21 @@ because its middle pin's copper is removed).
 - **J3 (HV+/HV-) and J4 (E/KE) on the right edge**, facing out; J3's unused middle position has no copper,
   so HV+ and HV- are 6 mm apart.
 - HV netclass: 2.5 mm to everything (IEC 60664-1, PD2, material group III, 500 V row - **verify**).
-  `hw/imd.kicad_dru` relaxes this to 0.5 mm only between neighbouring nodes of the same string
-  (<= 112 V apart) and to 1.0 mm between E and KE (same potential except during a wire-break fault).
+  `hw/imd.kicad_dru` (generated from `STRINGS` in `gen_pcb.py`) relaxes this to 0.5 mm **only between
+  neighbouring nodes** of a string (<= 112 V apart: 20 explicit pairs) and to 1.0 mm between E and KE
+  (same potential except during a wire-break fault). Every other pair keeps 2.5 mm, so DRC checks the
+  row ends that carry the full pack voltage: e.g. R0P_SW, which floats at HV+ whenever U8 is off,
+  against the VE row (4.25 mm), and the R0N string's HV- end against the KE row (3.95 mm).
+- Both copper layers: KiCad applies netclass clearance and the custom rules on every copper layer,
+  zone fills included. `hw/check_hv_clearance.py` measures it independently: for every HV through-hole
+  pad (J3, J4) and every HV via it prints the smallest gap on F.Cu and B.Cu to any other net's copper
+  (the bottom GND_HV pour, tracks, vias, pads). There are no HV-net vias: all HV tracks are top-layer.
+- **HV pin margin**: a further rule keeps all non-HV copper (pour, tracks, vias, pads) 3.5 mm from
+  the HV through-hole pins (J3 HV+, J4 E/KE) - 1 mm over the netclass minimum, for the hand-soldered
+  joints and flux residue on the side facing the economizer. `gen_pcb.py finish` removes any router
+  GND_HV track inside that margin (the bottom pour connects both ends anyway).
+  Measured (2026-11-26): bottom layer exactly 3.50 mm from the GND_HV pour at all three pins; top
+  layer 4.5-6.9 mm; E-KE 1.50 mm (rule 1.0 mm); no HV-net vias.
 - HV tracks are hand-placed and locked in `gen_pcb.py` (`hv_routes`); the autorouter sees them as
   obstacles. The low end of each string gets a locked escape stub + via.
 - Pours: GND (LV) both layers in the LV region; GND_HV on the bottom across the whole HV domain and on
@@ -202,7 +220,7 @@ Before ordering:
 | `imd_mhs` | IR155-style MHS encoding: duty = 5 % + 108000 / (R[k] + 1200) |
 | `imd_monitor` | State machine: phase P / N, settle-or-timeout per phase, solve, fault priority, OKHS hysteresis |
 | `src/imd/ads1220` | ADS1220 driver: single-shot, 90 SPS, PGA bypassed, internal 2.048 V ref (SBAS501D) |
-| `src/imd/main.cpp` | Round-robin VBUS/VE/VKE (~35 ms per set), pins, TIM1 PWM on PA8, watchdog, 1 Hz status line |
+| `src/imd/main.cpp` | Sample sets VBUS, VE, VKE, VBUS (~45 ms), pins, TIM1 PWM on PA8, R0 interlock, watchdog, calibration commands, 1 Hz status line |
 
 Behaviour:
 - Tracks f = Vn/Vbus rather than raw volts, so pack-voltage changes under load do not look like settling.
@@ -217,16 +235,34 @@ Behaviour:
 - OKHS drops when min(Rp, Rn) < 100 ohm/V x Vbus for 2 cycles; returns above 125 ohm/V.
 - INHIBIT: both switches open, outputs hold the last state. Contactor change: cycle restarts,
   result labelled "pack" or "system".
+- **Pack-voltage transients** (acceleration, regen). Two effects skew the Vn/Vbus ratio: the chassis
+  node lags a VBUS change through the Y-capacitance (it takes part of the step at once, then settles
+  with the same ~80 ms time constant the measurement uses), and the ADC reads VBUS and VE ~11 ms
+  apart. A simultaneous-sampling ADC would only remove the second, so this is handled in firmware:
+  - each sample set reads VBUS before and after VE/VKE; the mean is used, the difference is checked;
+  - a phase restarts if VBUS moved more than 0.5 % within it (or within one sample set), keeping the
+    R0 switch as it is. Nothing measured across a transient is used.
+  - After 5 restarts in a row (driving with continuous ripple), the phase is allowed to finish with a
+    2 % limit and twice the averaging window. That cycle is flagged `relaxed=1` in the status line.
+- **Held-reading age**: if no valid measurement completes for 60 s while HV is live and not
+  inhibited, the status line reports `state=DEGRADED` with the age. This is a warning, not a fault:
+  MHS / OKHS keep showing the last valid result. It clears with the next valid measurement.
+  (Hard device faults - no HV, bad VISO - are reported as device errors instead.)
+- **R0 interlock**: the output function refuses to turn on both R0 switches; if it is ever asked to,
+  both stay off and the board latches a device error (MHS 40 Hz, OKHS low) until reset. The state
+  machine never requests it; this guards against a future bug.
 - Independent watchdog (1 s): a hung loop resets the MCU, which drives every output low.
-- Flash use ~49.5 kB, capped at 62 kB in `platformio.ini` (the last 2 kB page holds the calibration).
+- Flash use ~50 kB, capped at 62 kB in `platformio.ini` (the last 2 kB page holds the calibration).
   Integer-only printf and a hand-written number parser: newlib's float printf / strtof cost 10-20 kB.
 
-Host tests (`pio test -e native`, 28 tests): bridge solve over a 6 x 6 grid of Rp/Rn, extrapolation, MHS
+Host tests (`pio test -e native`, 32 tests): bridge solve over a 6 x 6 grid of Rp/Rn, extrapolation, MHS
 encode -> IR155 decode round trip, and the state machine against a simulated vehicle (Y-cap,
 leakage, broken E or KE wire, dead switch, no HV, inhibit, contactor change, 1 uF Y-cap, +/-0.5 V
-noise), and both calibration steps (recovery of mis-built R0, Rdiv and channel gains; rejection of
-wrong wiring, a leaky bench chassis, bad Rcal and no HV). Checked that the tests catch a disabled
-earth check and a disabled OKHS trip.
+noise, pack-voltage swings with the Y-cap step response: +/-3 % holds the reading and goes stale
+after 60 s, +/-0.6 % finishes in relaxed mode within 10 %), and both calibration steps (recovery of
+mis-built R0, Rdiv and channel gains; rejection of wrong wiring, a leaky bench chassis, bad Rcal and
+no HV). Checked that the tests catch a disabled earth check, a disabled OKHS trip and a disabled
+transient check.
 
 Not done yet: ADS1220 AVDD/reference self-monitor, UART protocol to the economizer, MHS/OKHS
 behaviour verified against Bender D00376, bench run on a Nucleo-G031K8.
@@ -245,8 +281,18 @@ In the simulation (R0 +2.5 %, dividers -2.5 %, channel gains up to 1.2 % off), a
 reads 2.4 % high uncalibrated and exactly after calibration. Real-board accuracy is set by the
 meter readings you type in.
 
+**Calibrate near operating voltage.** Thick-film resistors have a voltage coefficient: a 1.2 MOhm
+1206 at ~100 V per part reads slightly lower than at 25 V (typically tens of ppm/V, part-dependent).
+The 4.8 MOhm strings see the full pack voltage, the 18k bottoms almost none, so the divider ratios
+shift with voltage. Calibrate with the bench supply close to the pack voltage (350-400 V for this
+truck), or, if the bench supply cannot reach that, calibrate lower and then verify in the truck at
+pack voltage against the IR155 (same decade-box resistances, one IMD connected at a time). Also
+remember the 100 ppm/K tempco: expect around 1 % of drift over the full temperature range, which is
+well inside what a 100 ohm/V trip with 25 % hysteresis needs.
+
 Equipment:
-- Current-limited DC supply, 100..400 V (a few mA is plenty), output floating.
+- Current-limited DC supply, ideally close to pack voltage (350-400 V; a few mA is plenty), output
+  floating.
 - The Fluke for the supply voltage and the Rcal value.
 - Rcal: about 1 MOhm, rated >= 1 kV (e.g. Vishay VR37 1M), value measured with the Fluke.
 - USB-serial adapter (3.3 V) on the stacking header pins 9 (TX into the IMD), 10 (RX), GND,
@@ -259,7 +305,7 @@ dividers bleed the board, not the supply's own capacitors).
 
 Steps:
 1. **GAIN.** HV supply on J3 (HV+ pin 1, HV- pin 3). Jumper J4 E **and** KE to HV+. Nothing else.
-   Turn on, read HV+ to HV- with the Fluke at J3, then send `CAL GAIN 250.3` (your reading).
+   Turn on, read HV+ to HV- with the Fluke at J3, then send `CAL GAIN 380.3` (your reading).
    About 4 s. It refuses if any channel is more than 10 % off (typing error, E/KE not jumpered).
 2. **BRIDGE.** Supply off, remove the jumper. Join E and KE together and connect Rcal from HV+ to that
    node. E/KE must not touch anything else, in particular not the supply's earth or HV-. Supply on,

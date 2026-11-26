@@ -597,7 +597,11 @@
     "netclass_patterns": [
       {
         "netclass": "Power",
-        "pattern": "12V_IN"
+        "pattern": "12V_STACK"
+      },
+      {
+        "netclass": "Power",
+        "pattern": "12V_J2"
       },
       {
         "netclass": "Power",

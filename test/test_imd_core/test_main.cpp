@@ -34,6 +34,13 @@ struct Plant {
 
   static float g(float r) { return isinf(r) ? 0.0f : 1.0f / r; }
 
+  // Pack voltage step (acceleration / regen): with symmetric Y-capacitors the chassis node takes
+  // half the step at once, then settles back to the resistive ratio with the RC time constant.
+  void setVbus(float v) {
+    vch += (v - vbus) * 0.5f;
+    vbus = v;
+  }
+
   void advance(float dt, bool r0p, bool r0n) {
     const bool sw = !switchDead && !eBroken;  // R0 reaches the chassis only through E
     const float gTop = g(rp) + (r0p && sw ? 1.0f / r0 : 0.0f);
@@ -77,8 +84,18 @@ struct Sim {
   uint32_t t = 0;
   bool cont1 = false, inhibit = false;
   float corr[3] = {1.0f, 1.0f, 1.0f};  // gain correction applied by the firmware (from calibration)
+  float rippleV = 0, ripplePeriodS = 0.4f, vbusBase = 0;  // square-wave pack-voltage swing
   explicit Sim(const Config& c = Config()) : mon(c) {}
+  void setRipple(float volts) {
+    if (rippleV == 0) vbusBase = plant.vbus;
+    rippleV = volts;
+    if (volts == 0) plant.setVbus(vbusBase);
+  }
   Inputs sample() {
+    if (rippleV > 0) {
+      const bool hi = fmodf(t / 1000.0f, ripplePeriodS) < ripplePeriodS / 2;
+      plant.setVbus(vbusBase + (hi ? rippleV : -rippleV));
+    }
     plant.advance(0.035f, out.r0p, out.r0n);
     Inputs in = plant.read(out.r0p, out.r0n);
     in.vbus *= corr[0];
@@ -303,6 +320,58 @@ static void test_noise_does_not_cause_false_trips() {
   assertRel(2e6f, s.mon.status().rp, 0.25f);
 }
 
+// ------------------------------------------------------------------ pack-voltage transients
+
+static void test_vbus_swings_hold_reading_then_go_stale() {
+  Sim s;
+  s.run(15.0f);
+  TEST_ASSERT_TRUE(s.out.okhs);
+  const uint32_t cycles = s.mon.status().cycles;
+  s.setRipple(12.0f);          // +/-3 % square wave: hard acceleration / regen
+  s.run(30.0f);
+  const Status& st = s.mon.status();
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(cycles, st.cycles, "no cycle may complete while VBUS swings 6 %");
+  TEST_ASSERT_TRUE(st.transientRestarts > 0);
+  TEST_ASSERT_TRUE_MESSAGE(s.out.okhs, "last valid reading is held");
+  TEST_ASSERT_FALSE(st.stale);
+  s.run(40.0f);                // 70 s without a valid measurement
+  TEST_ASSERT_TRUE(s.mon.status().stale);
+  TEST_ASSERT_TRUE_MESSAGE(s.mon.status().mode == MhsMode::Normal, "stale is a warning, not a fault");
+  TEST_ASSERT_TRUE(s.out.okhs);
+  s.setRipple(0);
+  s.run(15.0f);
+  TEST_ASSERT_FALSE(s.mon.status().stale);
+  TEST_ASSERT_TRUE(s.mon.status().cycles > cycles);
+}
+
+static void test_small_ripple_finishes_in_relaxed_mode() {
+  Sim s;
+  s.plant.rp = 200e3f;
+  s.setRipple(2.4f);           // +/-0.6 %: above the 0.5 % strict limit, inside the 2 % relaxed one
+  s.run(40.0f);
+  const Status& st = s.mon.status();
+  TEST_ASSERT_TRUE(st.cycles >= 3);
+  TEST_ASSERT_TRUE(st.lastRelaxed);
+  TEST_ASSERT_TRUE(st.mode == MhsMode::Normal);
+  assertRel(200e3f, st.rp, 0.10f);
+}
+
+static void test_steady_vbus_is_never_relaxed() {
+  Sim s;
+  s.plant.noise = 0.5f;
+  s.run(20.0f);
+  TEST_ASSERT_FALSE(s.mon.status().lastRelaxed);
+  TEST_ASSERT_EQUAL_UINT32(0, s.mon.status().transientRestarts);
+}
+
+static void test_inhibit_does_not_go_stale() {
+  Sim s;
+  s.run(15.0f);
+  s.inhibit = true;
+  s.run(90.0f);
+  TEST_ASSERT_FALSE(s.mon.status().stale);
+}
+
 // ------------------------------------------------------------------ calibration
 
 // The "real" board for the calibration tests: R0, dividers and ADC gains all off nominal.
@@ -470,6 +539,10 @@ int main() {
   RUN_TEST(test_contactor_change_restarts_and_labels_scope);
   RUN_TEST(test_large_y_cap_still_converges);
   RUN_TEST(test_noise_does_not_cause_false_trips);
+  RUN_TEST(test_vbus_swings_hold_reading_then_go_stale);
+  RUN_TEST(test_small_ripple_finishes_in_relaxed_mode);
+  RUN_TEST(test_steady_vbus_is_never_relaxed);
+  RUN_TEST(test_inhibit_does_not_go_stale);
   RUN_TEST(test_cal_crc_and_validation);
   RUN_TEST(test_gain_cal_recovers_channel_errors);
   RUN_TEST(test_gain_cal_rejects_wrong_wiring);

@@ -73,15 +73,21 @@ bool PhaseTracker::add(uint32_t t, float f) {
 void Monitor::startPhase(Phase p, uint32_t now) {
   st_.phase = p;
   const bool sst = !sstDone_;
+  const bool relaxed = st_.restarts >= cfg_.maxRestarts;
   const uint32_t maxMs = sst ? cfg_.sstPhaseMs : cfg_.maxPhaseMs;
   const uint32_t minMs = sst ? cfg_.sstPhaseMs / 2 : cfg_.minPhaseMs;
-  trk_.start(now, minMs, maxMs, cfg_.windowMs, cfg_.settleTol);
+  // Relaxed: heavier averaging (twice the window) to make up for the looser VBUS limit.
+  trk_.start(now, minMs, maxMs, relaxed ? cfg_.windowMs * 2 : cfg_.windowMs, cfg_.settleTol);
+  vbusMin_ = 1e9f;
+  vbusMax_ = -1e9f;
   out_.r0p = (p == Phase::P);
   out_.r0n = (p == Phase::N);
 }
 
 void Monitor::restart(uint32_t now) {
   earthMismatch_ = false;
+  cycleRelaxed_ = false;
+  st_.restarts = 0;
   startPhase(Phase::P, now);
 }
 
@@ -90,6 +96,7 @@ Outputs Monitor::step(uint32_t now, const Inputs& in) {
   if (!started_) {
     started_ = true;
     scopeAtStart_ = scope;
+    lastValidMs_ = now;
     restart(now);
   }
   st_.vbus = in.vbus;
@@ -98,6 +105,8 @@ Outputs Monitor::step(uint32_t now, const Inputs& in) {
   if (in.inhibit) {
     st_.phase = Phase::Inhibited;
     out_.r0p = out_.r0n = false;
+    lastValidMs_ = now;   // not measuring on purpose: the held reading does not age
+    st_.stale = false;
     return out_;
   }
   if (st_.phase == Phase::Inhibited) {
@@ -119,6 +128,24 @@ Outputs Monitor::step(uint32_t now, const Inputs& in) {
     st_.mode = MhsMode::DeviceError;
     updateOutputs();
     restart(now);  // keep switching so the self-test keeps running, but use no data
+    lastValidMs_ = now;   // no HV to measure: staleness is not the issue (device error already is)
+    st_.stale = false;
+    return out_;
+  }
+
+  // Held-reading age: HV is live and we are trying to measure.
+  st_.ageMs = now - lastValidMs_;
+  st_.stale = st_.ageMs > cfg_.staleMs;
+
+  // Pack-voltage transient: restart this phase rather than average across it.
+  const bool relaxed = st_.restarts >= cfg_.maxRestarts;
+  const float vlim = (relaxed ? cfg_.vbusStableRelaxed : cfg_.vbusStableFrac) * in.vbus;
+  vbusMin_ = fminf(vbusMin_, in.vbus);
+  vbusMax_ = fmaxf(vbusMax_, in.vbus);
+  if (vbusMax_ - vbusMin_ > vlim || in.vbusDelta > vlim) {
+    if (st_.restarts < 255) st_.restarts++;
+    st_.transientRestarts++;
+    startPhase(st_.phase, now);
     return out_;
   }
 
@@ -127,6 +154,8 @@ Outputs Monitor::step(uint32_t now, const Inputs& in) {
   if (f > 1.0f) f = 1.0f;
 
   if (trk_.add(now, f)) {
+    cycleRelaxed_ = cycleRelaxed_ || relaxed;
+    st_.restarts = 0;
     if (st_.phase == Phase::P) {
       st_.fP = trk_.result();
       // Broken E or KE: during phase P, R0 pulls E towards HV+, so a broken E reads high and a
@@ -138,7 +167,7 @@ Outputs Monitor::step(uint32_t now, const Inputs& in) {
     } else {
       st_.fN = trk_.result();
       st_.lastSettled = st_.lastSettled && trk_.settled();
-      finishCycle(in);
+      finishCycle(in, now);
       startPhase(Phase::P, now);
       earthMismatch_ = false;
     }
@@ -146,9 +175,11 @@ Outputs Monitor::step(uint32_t now, const Inputs& in) {
   return out_;
 }
 
-void Monitor::finishCycle(const Inputs& in) {
+void Monitor::finishCycle(const Inputs& in, uint32_t now) {
   st_.cycles++;
   st_.systemScope = scopeAtStart_;
+  st_.lastRelaxed = cycleRelaxed_;
+  cycleRelaxed_ = false;
   const bool sst = !sstDone_;
   sstDone_ = true;
 
@@ -161,6 +192,9 @@ void Monitor::finishCycle(const Inputs& in) {
     st_.rn = ins.rn;
     st_.riso = fminf(ins.rp, ins.rn);
     st_.haveResult = true;
+    lastValidMs_ = now;
+    st_.ageMs = 0;
+    st_.stale = false;
 
     const float thr = cfg_.responseOhmPerV * in.vbus;
     if (sst) st_.sstGood = st_.riso >= thr;

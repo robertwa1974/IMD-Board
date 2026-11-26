@@ -68,7 +68,7 @@ B = "Stack header"
 #   pin 10 UART_FROM_IMD = IMD TX -> economizer RX (PB7)
 part("J", "Connector_Generic:Conn_02x06_Odd_Even", "Stack header 2x6",
      "Connector_PinHeader_2.54mm:PinHeader_2x06_P2.54mm_Vertical",
-     {1: "12V_IN", 2: "GND", 3: "IMD_OK", 4: "GND", 5: "CONT1_CLOSED", 6: "CONT2_CLOSED",
+     {1: "12V_STACK", 2: "GND", 3: "IMD_OK", 4: "GND", 5: "CONT1_CLOSED", 6: "CONT2_CLOSED",
       7: "IMD_INHIBIT", 8: "GND", 9: "UART_TO_IMD", 10: "UART_FROM_IMD", 11: "IMD_MHS", 12: "IMD_OKHS"},
      B, ref="J1", mpn="2x6 elevated male header, 2.54 mm (length to suit 15 mm standoffs + 8.5 mm socket)",
      note="Footprint on top side at the same XY/rotation as economizer J4; header inserted from below")
@@ -76,20 +76,23 @@ part("J", "Connector_Generic:Conn_02x06_Odd_Even", "Stack header 2x6",
 B = "Stand-alone connector"
 part("J", "Connector_Generic:Conn_01x04", "Micro-Fit 1x4",
      "Connector_Molex:Molex_Micro-Fit_3.0_43650-0400_1x04_P3.00mm_Horizontal",
-     {1: "12V_IN", 2: "GND", 3: "IMD_MHS", 4: "IMD_OKHS"}, B, ref="J2", mpn="Molex 43650-0400", lcsc="C277684",
+     {1: "12V_J2", 2: "GND", 3: "IMD_MHS", 4: "IMD_OKHS"}, B, ref="J2", mpn="Molex 43650-0400", lcsc="C277684",
      note="Only when NOT stacked: permanent 12 V, GND, IR155-style MHS/OKHS to VCU")
 
 # --------------------------------------------------------------------------- LV power
 B = "LV power input"
-part("D", "Diode:SS14", "SS14", FP_SMA, {1: "VLV", 2: "12V_IN"}, B, mpn="SS14", lcsc="C2480",
-     note="Reverse polarity (stand-alone use); ~0.1 A load")
+part("D", "Diode:SS14", "SS14", FP_SMA, {1: "VLV", 2: "12V_STACK"}, B, mpn="SS14", lcsc="C2480",
+     note="Stack input. With D8: diode-OR, so J2 can never back-feed the economizer 12V_PROT")
+part("D", "Diode:SS14", "SS14", FP_SMA, {1: "VLV", 2: "12V_J2"}, B, mpn="SS14", lcsc="C2480", ref="D8",
+     note="Stand-alone input (J2), reverse polarity; diode-OR with D1")
 part("D", "Device:D_Zener", "SMAJ24A", FP_SMA, {1: "VLV", 2: "GND"}, B, mpn="SMAJ24A (unidirectional TVS)", lcsc="C3001960",
      note="Load-dump clamp for stand-alone use (economizer already clamps when stacked)")
 C("10u 50V", "VLV", "GND", B, FP_C1206)
 C("100n 50V", "VLV", "GND", B)
 part("#FLG", "power:PWR_FLAG", "PWR_FLAG", "", {1: "VLV"}, B, ref="#FLG01")
 part("#FLG", "power:PWR_FLAG", "PWR_FLAG", "", {1: "GND"}, B, ref="#FLG02")
-part("#FLG", "power:PWR_FLAG", "PWR_FLAG", "", {1: "12V_IN"}, B, ref="#FLG03")
+part("#FLG", "power:PWR_FLAG", "PWR_FLAG", "", {1: "12V_STACK"}, B, ref="#FLG03")
+part("#FLG", "power:PWR_FLAG", "PWR_FLAG", "", {1: "12V_J2"}, B, ref="#FLG06")
 
 B = "LV 5 V buck"
 part("U", "Regulator_Switching:LMR14206", "LMR14206XMK", "Package_TO_SOT_SMD:TSOT-23-6",
@@ -125,9 +128,9 @@ part("U", "imd:UCC12050", "UCC12050DVER", FP_SOIC16W,
       9: "GND_HV", 15: "GND_HV", 16: "GND_HV"}, B, mpn="UCC12050DVER (UCC12051QDVERQ1 automotive)", lcsc="C504571",
      note="SEL=VISO -> 5.0 V. SYNC=GNDP (internal osc). NC 6-8 to GNDP, NC 10-12 to GNDS per datasheet")
 R("10k", "5V_LV", "ISO_EN", B, note="EN high = on")
-C("10u 16V", "5V_LV", "GND", B, FP_C0805, note="At VINP pin 3 / GNDP pin 2")
+C("10u 50V", "5V_LV", "GND", B, FP_C1206, note="At VINP pin 3 / GNDP pin 2. 1206 50 V: keeps most of 10 uF at 5 V bias")
 C("100n", "5V_LV", "GND", B)
-C("10u 16V", "VISO_HV", "GND_HV", B, FP_C0805, note="At VISO pin 14 / GNDS pin 15")
+C("10u 50V", "VISO_HV", "GND_HV", B, FP_C1206, note="At VISO pin 14 / GNDS pin 15. 1206 50 V: keeps most of 10 uF at 5 V bias")
 C("100n", "VISO_HV", "GND_HV", B)
 part("#FLG", "power:PWR_FLAG", "PWR_FLAG", "", {1: "GND_HV"}, B, ref="#FLG04")
 
@@ -321,7 +324,7 @@ def check():
         if len(conns) < 2:
             raise AssertionError(f"net {net} has only one connection: {conns}")
     # Domain check: no part may touch both LV GND-domain and HV GND-domain nets except barrier parts.
-    lv = {"GND", "VLV", "5V_LV", "3V3_LV", "12V_IN"}
+    lv = {"GND", "VLV", "5V_LV", "3V3_LV", "12V_STACK", "12V_J2"}
     hv = {"GND_HV", "VISO_HV", "3V3_HV"}
     barrier = {p["ref"] for p in parts if p["lib_id"] in ("imd:UCC12050", "Isolator:ISO7763DW", "Isolator:ISO7721DWV")}
     for p in parts:

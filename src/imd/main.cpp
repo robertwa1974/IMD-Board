@@ -62,8 +62,18 @@ static void applyMhs(const imd::PwmCmd& c) {
   mhsTimer->setCaptureCompare(1, (uint32_t)(period * c.dutyPct / 100.0f + 0.5f), TICK_COMPARE_FORMAT);
 }
 
+// Latched if anything ever asks for both R0 switches at once (the state machine never does).
+static bool r0Interlock = false;
+
 static void setR0(bool p, bool n) {
-  // Break before make: never both on (harmless, ~0.45 mA, but it would corrupt the sample).
+  // Interlock: never both on. Not dangerous (~0.45 mA through 2 x R0), but every reading taken
+  // like that is meaningless, so it latches a device error until reset.
+  if (p && n) {
+    p = n = false;
+    if (!r0Interlock) Serial.println("R0 INTERLOCK: both switches requested - device error until reset");
+    r0Interlock = true;
+  }
+  // Break before make.
   if (!p) digitalWrite(pins::R0P_EN, LOW);
   if (!n) digitalWrite(pins::R0N_EN, LOW);
   if (p) digitalWrite(pins::R0P_EN, HIGH);
@@ -259,9 +269,11 @@ void loop() {
   IWatchdog.reload();
   pollSerial();
 
-  // ---- ADC round robin: one sample set = VBUS, VE, VKE.
-  static const Ads1220::Channel order[3] = {Ads1220::AIN0, Ads1220::AIN1, Ads1220::AIN2};
-  static float v[3];
+  // ---- ADC round robin: one sample set = VBUS, VE, VKE, VBUS (~45 ms). VBUS is read before and
+  // after the chassis channels: their mean is VBUS at the moment of VE/VKE, and their difference
+  // tells the monitor that the pack voltage moved during the set.
+  static const Ads1220::Channel order[4] = {Ads1220::AIN0, Ads1220::AIN1, Ads1220::AIN2, Ads1220::AIN0};
+  static float v[4];
   static uint8_t idx = 0;
   static bool busy = false;
   static uint32_t tStart = 0;
@@ -276,7 +288,7 @@ void loop() {
     } else if (adc.ready()) {
       v[idx] = adc.readVolts() * kDivGain;
       busy = false;
-      if (++idx == 3) {
+      if (++idx == 4) {
         idx = 0;
         setDone = true;
       }
@@ -289,7 +301,9 @@ void loop() {
 
   if (setDone || adcFault) {
     imd::Inputs in;
-    in.vbus = adcFault ? 0.0f : v[0] * cal.gVbus;  // vbus 0 -> device error inside the monitor
+    const float vbusRaw = 0.5f * (v[0] + v[3]);
+    in.vbus = adcFault ? 0.0f : vbusRaw * cal.gVbus;  // vbus 0 -> device error inside the monitor
+    in.vbusDelta = fabsf(v[3] - v[0]) * cal.gVbus;
     in.ve = v[1] * cal.gVe;
     in.vke = v[2] * cal.gVke;
     in.viso = readViso();
@@ -300,8 +314,14 @@ void loop() {
     if (mode == Mode::Run) {
       const imd::Outputs out = monitor.step(millis(), in);
       setR0(out.r0p, out.r0n);
-      applyMhs(out.mhs);
-      setOk(out.okhs);
+      if (r0Interlock) {
+        setR0(false, false);
+        applyMhs(imd::encodeMhs(imd::MhsMode::DeviceError, 0));
+        setOk(false);
+      } else {
+        applyMhs(out.mhs);
+        setOk(out.okhs);
+      }
     } else {
       // Calibrating: not monitoring, so report a device error and never "OK".
       applyMhs(imd::encodeMhs(imd::MhsMode::DeviceError, 0));
@@ -312,7 +332,7 @@ void loop() {
         endCal(r);
       } else if (mode == Mode::CalGain) {
         setR0(false, false);
-        if (gainCal.add(v[0], v[1], v[2])) endCal(gainCal.finish(&cal));   // raw: before gains
+        if (gainCal.add(vbusRaw, v[1], v[2])) endCal(gainCal.finish(&cal));   // raw: before gains
       } else {
         const imd::Outputs out = bridgeCal.step(millis(), in);              // with current gains
         setR0(out.r0p, out.r0n);
@@ -333,11 +353,16 @@ void loop() {
       return;
     }
     const imd::Status& s = monitor.status();
-    Serial.printf("IMD mode=%s ok=%d Rp=%s Rn=%s Vbus=%ld.%01ld fP=%ldppm fN=%ldppm scope=%s cyc=%lu settled=%d err=%u/%u cal=%s%s\n",
-                  imd::mhsModeName(s.mode), (int)(s.mode == imd::MhsMode::Normal && s.insOk),
+    // state: ok | DEGRADED (no valid reading for 60 s, last one held) | INTERLOCK
+    const char* state = r0Interlock ? "INTERLOCK" : s.stale ? "DEGRADED" : "ok";
+    Serial.printf("IMD mode=%s ok=%d state=%s age=%lus Rp=%s Rn=%s Vbus=%ld.%01ld fP=%ldppm fN=%ldppm scope=%s "
+                  "cyc=%lu settled=%d relaxed=%d restarts=%lu err=%u/%u cal=%s%s\n",
+                  imd::mhsModeName(s.mode), (int)(s.mode == imd::MhsMode::Normal && s.insOk && !r0Interlock),
+                  state, (unsigned long)(s.ageMs / 1000),
                   kohm(s.rp, bufP), kohm(s.rn, bufN), (long)s.vbus, labs((long)(s.vbus * 10.0f)) % 10,
                   (long)(s.fP * 1e6f), (long)(s.fN * 1e6f),
                   s.systemScope ? "system" : "pack", (unsigned long)s.cycles, (int)s.lastSettled,
+                  (int)s.lastRelaxed, (unsigned long)s.transientRestarts,
                   s.badCount, s.earthCount,
                   (cal.flags & imd::Calibration::kGain) ? "G" : "-",
                   (cal.flags & imd::Calibration::kBridge) ? "B" : "-");
