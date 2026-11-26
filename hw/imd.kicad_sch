@@ -27376,7 +27376,7 @@
 				)
 			)
 		)
-		(property "Notes" "24-bit, internal 2.048 V ref, PGA bypassed, single-ended vs AVSS. CLK=DGND -> internal osc. REFP0/REFN0 unused"
+		(property "Notes" "24-bit, internal 2.048 V ref, PGA bypassed, single-ended vs AVSS. CLK=DGND -> internal osc. REFP0/REFN0 floating (SBAS501D 9.1.5: lowest leakage)"
 			(at 189.23 365.76 0)
 			(hide yes)
 			(effects
@@ -27666,69 +27666,13 @@
 			)
 		)
 	)
-	(wire
-		(pts
-			(xy 171.45 373.38)
-			(xy 168.91 373.38)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9195f1ce-9f0d-5f83-ad91-d23cd2c7d375")
+	(no_connect
+		(at 171.45 373.38)
+		(uuid "50c09e86-fbab-533c-a282-64e84911c56c")
 	)
-	(global_label "GND_HV"
-		(shape passive)
-		(at 168.91 373.38 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "4d14a736-bfa9-5ccd-bce8-6c9532b6a3e6")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 168.91 373.38 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-	)
-	(wire
-		(pts
-			(xy 171.45 358.14)
-			(xy 168.91 358.14)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "21fd9b57-5d48-572d-b6be-e859b702a1aa")
-	)
-	(global_label "GND_HV"
-		(shape passive)
-		(at 168.91 358.14 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "85224838-d19f-542a-9a35-81aeefbc4c75")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 168.91 358.14 0)
-			(hide yes)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
+	(no_connect
+		(at 171.45 358.14)
+		(uuid "9db572e4-77b1-5117-bfe1-953a9be8d8eb")
 	)
 	(wire
 		(pts

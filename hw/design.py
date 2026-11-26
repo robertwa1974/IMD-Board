@@ -242,9 +242,9 @@ B = "ADC"
 part("U", "Analog_ADC:ADS1220xPW", "ADS1220IPWR", "Package_SO:TSSOP-16_4.4x5mm_P0.65mm",
      {1: "ADC_SCK", 2: "ADC_CS", 3: "GND_HV", 4: "GND_HV", 5: "GND_HV",
       11: "AIN_VBUS", 10: "AIN_VE", 7: "AIN_VKE", 6: "AIN_VBB",
-      9: "GND_HV", 8: "GND_HV", 12: "3V3_HV", 13: "3V3_HV",
+      9: None, 8: None, 12: "3V3_HV", 13: "3V3_HV",
       14: "ADC_DRDY", 15: "ADC_MISO", 16: "ADC_MOSI"}, B, mpn="ADS1220IPWR",
-     note="24-bit, internal 2.048 V ref, PGA bypassed, single-ended vs AVSS. CLK=DGND -> internal osc. REFP0/REFN0 unused")
+     note="24-bit, internal 2.048 V ref, PGA bypassed, single-ended vs AVSS. CLK=DGND -> internal osc. REFP0/REFN0 floating (SBAS501D 9.1.5: lowest leakage)")
 C("100n", "3V3_HV", "GND_HV", B, note="AVDD")
 C("100n", "3V3_HV", "GND_HV", B, note="DVDD")
 C("1u", "3V3_HV", "GND_HV", B)

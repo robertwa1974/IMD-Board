@@ -167,19 +167,18 @@ Interlock policy (implemented in economizer firmware):
 
 ## 7. Existing code: IR155 MHS decoder (ESP32-S3, Arduino/PlatformIO)
 
-PlatformIO project at the repo root (`platformio.ini`):
+PlatformIO project at the repo root (`platformio.ini`, envs `imd`, `m5dial`, `native`):
 - `lib/ir155_decoder/ir155_decoder.h/.cpp`: pure `decode(freq, duty)` + `dutyToKohm()` (host-testable),
   and an interrupt-driven `Decoder` class (both edges, 4-period averaging, 2-period state stability,
   250 ms no-edge timeout -> NO_SIGNAL with stuck level, 300 us glitch reject, IRAM-safe pin reads).
-- `src/main.cpp`: M5Dial example (Port B G1/G2, confirm for board revision), MHS + OKHS,
+- `src/m5dial/main.cpp`: M5Dial example (Port B G1/G2, confirm for board revision), MHS + OKHS,
   own warn/fault thresholds (500k/100k), Serial output.
-- `test/test_decode/test_main.cpp`: Unity host tests of the decode logic.
+- `test/test_decode/`: Unity host tests of the decode logic.
 
-    pio run -e m5dial        # builds (checked 2026-11-25, espressif32 6.13.0, board m5stack-stamps3)
-    pio test -e native       # needs a host gcc/g++ on PATH (not installed on Rob's PC yet)
+    pio run -e m5dial        # builds (espressif32 6.13.0, board m5stack-stamps3)
+    PATH=/c/msys64/mingw64/bin:$PATH pio test -e native     # MSYS2 gcc is already on Rob's PC
 
-Status: ESP32 build OK. Host tests not re-run since the move to Unity (no host compiler here).
-Hardware NOT yet tested.
+Status: ESP32 build OK, host tests pass (2026-11-26). Hardware NOT yet tested.
 
 Input conditioning (per signal, MHS and OKHS):
 
@@ -203,8 +202,8 @@ The same decoder reads the DIY IMD later, since outputs are IR155-compatible.
 4. IMD schematic: FIRST PASS DONE (see `DESIGN_NOTES.md` for decisions: R0 500k, 5 MOhm sense
    strings, TPSI2140-Q1 switches instead of PhotoMOS, external ADS1220, E/KE dual divider for
    chassis-loss detection). Open: review, then PCB layout with the creepage rules in DESIGN_NOTES.
-5. IMD firmware state machine: switch P/N, settle (or extrapolate), solve, filter, encode MHS/OKHS,
-   self-tests, chassis-loss detection, INHIBIT handling, contactor-state-aware labeling.
+5. IMD firmware: FIRST PASS DONE (`src/imd/`, `lib/imd_core/`, see DESIGN_NOTES "Firmware").
+   Host-tested against a simulated vehicle; not yet run on a Nucleo or the board.
 6. Optional later: CAN output (STM32G0B1 + isolated CAN) and a ZombieVerter firmware module that
    treats an IMD fault as an opmode-blocking error; bus-side divider for weld detection.
 

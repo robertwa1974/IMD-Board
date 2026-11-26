@@ -162,11 +162,47 @@ HV tap leads get inline fuses in the harness (>= 1000 VDC rated, <= 1 A; **choos
 - Guard ring around the ADS1220 inputs at GND_HV (MOhm nodes are leakage-sensitive: keep the
   board clean, conformal coat after test).
 
+## Firmware (first pass)
+
+`lib/imd_core/` holds all the logic and has no hardware dependencies; `src/imd/` is the thin STM32 layer.
+
+| File | Job |
+|---|---|
+| `imd_bridge` | Solve Rp/Rn from the settled chassis fraction f = Vn/Vbus of each phase; forward model; 3-point extrapolation |
+| `imd_mhs` | IR155-style MHS encoding: duty = 5 % + 108000 / (R[k] + 1200) |
+| `imd_monitor` | State machine: phase P / N, settle-or-timeout per phase, solve, fault priority, OKHS hysteresis |
+| `src/imd/ads1220` | ADS1220 driver: single-shot, 90 SPS, PGA bypassed, internal 2.048 V ref (SBAS501D) |
+| `src/imd/main.cpp` | Round-robin VBUS/VE/VKE (~35 ms per set), pins, TIM1 PWM on PA8, watchdog, 1 Hz status line |
+
+Behaviour:
+- Tracks f = Vn/Vbus rather than raw volts, so pack-voltage changes under load do not look like settling.
+- A phase ends when it is settled (3-window exponential fit says < 0.0005 to go, or the windows are flat)
+  or at `maxPhaseMs` (4 s default; raise it once the Y-cap is measured). The final value is the
+  extrapolated one when the tail is a clean exponential.
+- First cycle after power-up: 600 ms phases -> speed-start 30 Hz good/bad. OKHS / IMD_OK stay low
+  until the first full measurement.
+- Priority: earth fault (E/KE differ by > max(10 V, 5 % Vbus) at the end of phase P, 2 cycles) >
+  device error (Vbus < 20 V, VISO outside 4.5-5.6 V, ADC timeout, or 3 unsolvable cycles, e.g. a dead
+  R0 switch) > undervoltage (off by default) > normal.
+- OKHS drops when min(Rp, Rn) < 100 ohm/V x Vbus for 2 cycles; returns above 125 ohm/V.
+- INHIBIT: both switches open, outputs hold the last state. Contactor change: cycle restarts,
+  result labelled "pack" or "system".
+- Independent watchdog (1 s): a hung loop resets the MCU, which drives every output low.
+- Flash use 61 % of 64 kB (integer-only printf).
+
+Host tests (`pio test -e native`): bridge solve over a 6 x 6 grid of Rp/Rn, extrapolation, MHS
+encode -> IR155 decode round trip, and the state machine against a simulated vehicle (Y-cap,
+leakage, broken E or KE wire, dead switch, no HV, inhibit, contactor change, 1 uF Y-cap, +/-0.5 V
+noise). Checked that the tests catch a disabled earth check and a disabled OKHS trip.
+
+Not done yet: ADS1220 AVDD/reference self-monitor, UART protocol to the economizer, MHS/OKHS
+behaviour verified against Bender D00376, bench run on a Nucleo-G031K8.
+
 ## Open / verify
 
 1. IR155 encodings and duty->R formula vs Bender D00376 (unchanged from the handoff).
-2. ADS1220 unused REFP0/REFN0 tied to AVSS: **verify** against the ADS1220 datasheet.
+2. ~~ADS1220 unused REFP0/REFN0~~: now left floating, per SBAS501D section 9.1.5 (AVSS works but leaks more). AIN3 must float when the VBB divider is not fitted, which it does (only DNP parts on it).
 3. IEC 60664-1 creepage numbers above: **verify**.
 4. HV-tap fuse part.
 5. SWD is HV-referenced: program only with J3 unplugged; later, a UART bootloader through the isolator.
-6. Firmware (STM32G031 env) not started; state machine per HANDOFF.md section 8 item 5.
+6. Firmware: first pass done (see above). Next: bench run on a Nucleo with a resistor-divider HV simulator at safe voltage.
