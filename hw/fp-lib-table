@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "imd")(type "KiCad")(uri "${KIPRJMOD}/imd.pretty")(options "")(descr "IMD board footprints"))
+)

@@ -1,0 +1,10 @@
+.pio/
+.vscode/
+*-backups/
+fp-info-cache
+*.kicad_prl
+_autosave-*
+*.lck
+__pycache__/
+hw/erc.rpt
+hw/imd.net
