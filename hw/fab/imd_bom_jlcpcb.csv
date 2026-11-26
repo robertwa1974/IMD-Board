@@ -1,6 +1,6 @@
 Comment,Designator,Footprint,LCSC Part #,MPN,Qty,Notes
 Stack header 2x6,J1,PinHeader_2x06_P2.54mm_Vertical,,"2x6 elevated male header, 2.54 mm (length to suit 15 mm standoffs + 8.5 mm socket)",1,HAND-SOLDER (not in CPL). Footprint on top side at the same XY/rotation as economizer J4; header inserted from below
-Micro-Fit 1x4,J2,Molex_Micro-Fit_3.0_43650-0400_1x04_P3.00mm_Horizontal,C277684,Molex 43650-0400,1,"HAND-SOLDER (not in CPL). Only when NOT stacked: permanent 12 V, GND, IR155-style MHS/OKHS to VCU"
+Micro-Fit 2x6,J2,Molex_Micro-Fit_3.0_43045-1200_2x06_P3.00mm_Horizontal,C277636,Molex 43045-1200,1,"HAND-SOLDER (not in CPL). Stand-alone: 1 +12V, 2/5/10 GND, 3 MHS, 4 OKHS, 6 spare, 7 CONT1, 8 CONT2, 9 INHIBIT (12 V level), 11 UART into IMD, 12 UART from IMD (3.3 V)"
 SS14,"D1,D8",D_SMA,C2480,SS14,2,"D1: Stack input. With D8: diode-OR, so J2 can never back-feed the economizer 12V_PROT; D8: Stand-alone input (J2), reverse polarity; diode-OR with D1"
 SMAJ24A,D2,D_SMA,C3001960,SMAJ24A (unidirectional TVS),1,Load-dump clamp for stand-alone use (economizer already clamps when stacked)
 10u 50V,"C1,C10,C12",C_1206_3216Metric,C13585,,3,C10: At VINP pin 3 / GNDP pin 2. 1206 50 V: keeps most of 10 uF at 5 V bias; C12: At VISO pin 14 / GNDS pin 15. 1206 50 V: keeps most of 10 uF at 5 V bias
@@ -13,19 +13,19 @@ LMR14206XMK,U1,TSOT-23-6,C2071127,LMR14206XMKE/NOPB,1,"4.5-42 V in, 1.25 MHz, 0.
 SS16,D3,D_SMA,C2481,SS16,1,"Catch diode, 60 V 1 A (datasheet example)"
 15u,L1,L_Bourns_SRN6045TA,C3224592,Bourns SRN6045-150M,1,1.9 A rated (datasheet asks >= 1.1 A); same 6x6 land as SRN6045TA
 5.6k,R2,R_0603_1608Metric,C23189,,1,Vout = 0.765 V x (1 + 5.6k/1k) = 5.05 V (both JLCPCB Basic)
-1k,"R3,R4,R22,R38,R44,R50",R_0603_1608Metric,C21190,,6,
+1k,"R3,R4,R22,R38,R44,R50,R58,R59",R_0603_1608Metric,C21190,,8,R58: Series protection; a 5 V adapter is clamped by U11; R59: Series protection
 22u 16V,"C6,C7",C_1206_3216Metric,C12891,,2,
 AP2112K-3.3,U2,SOT-23-5,C51118,AP2112K-3.3TRG1,1,
 1u,"C8,C9,C18,C19,C31",C_0603_1608Metric,C15849,,5,
 green,D4,LED_0603_1608Metric,C72043,,1,LV power
 UCC12050DVER,U3,SOIC-16W_7.5x10.3mm_P1.27mm,C504571,UCC12050DVER (UCC12051QDVERQ1 automotive),1,"SEL=VISO -> 5.0 V. SYNC=GNDP (internal osc). NC 6-8 to GNDP, NC 10-12 to GNDS per datasheet"
-10k,"R5,R13,R17,R20,R21",R_0603_1608Metric,C25804,,5,"R5: EN high = on; R13: Vgs = -VLV x 10/32: -3.8 V at 12 V, -12 V at the 38 V TVS clamp; R17: Vgs = -VLV x 10/32: -3.8 V at 12 V, -12 V at the 38 V TVS clamp; R20: VISO/2 to MCU ADC: supply self-test"
+10k,"R5,R13,R17,R20,R21,R53,R55,R57",R_0603_1608Metric,C25804,,8,"R5: EN high = on; R13: Vgs = -VLV x 10/32: -3.8 V at 12 V, -12 V at the 38 V TVS clamp; R17: Vgs = -VLV x 10/32: -3.8 V at 12 V, -12 V at the 38 V TVS clamp; R20: VISO/2 to MCU ADC: supply self-test; R53: Divider bottom (with the 100k pull-down: 9.1k); R55: Divider bottom (with the 100k pull-down: 9.1k); R57: Divider bottom (with the 100k pull-down: 9.1k)"
 100n,"C11,C13,C14,C15,C16,C17,C20,C21,C23,C24,C25,C26,C27,C28,C29,C30",C_0603_1608Metric,C14663,,16,"C26: Anti-alias, ~85 Hz with the divider; C27: Anti-alias, ~85 Hz with the divider; C28: Anti-alias, ~85 Hz with the divider; C29: AVDD; C30: DVDD"
 ISO7763FDWR,U4,SOIC-16W_7.5x10.3mm_P1.27mm,C2871771,ISO7763FDWR,1,"F = default-low outputs. 1500 Vrms / 2121 VDC working, 8 mm creepage"
 ISO7721DWVR,U5,SOIC-8_7.5x5.85mm_P1.27mm,C2864013,ISO7721DWVR,1,Non-F: idle-high UART. 8.5 mm creepage (DWV)
 100,"R6,R7",R_0603_1608Metric,C22775,,2,R6: Economizer adds 1k + ESD and a 100k pull-down
 2N7002,"Q1,Q3",SOT-23,C8545,2N7002,2,
-22k,"R14,R18",R_0603_1608Metric,C31850,,2,
+22k,"R14,R18,R52,R54,R56",R_0603_1608Metric,C31850,,5,R52: 12 V-level input: divider top; R54: 12 V-level input: divider top; R56: 12 V-level input: divider top
 BSS84,"Q2,Q4",SOT-23,C8492,LBSS84LT1G,2,"High-side switch, -50 V"
 470 1W,"R15,R19",R_2512_6332Metric,C351718,,2,1 W: survives a dead short (0.55 W at 16 V). High = ~9.6 V into the IR155 2.2k load
 SMAJ24CA,"D5,D6",D_SMA,C113963,SMAJ24CA (bidirectional),2,"Harness ESD/transients, both polarities"
@@ -41,3 +41,5 @@ TPSI2140QDWQRQ1,"U8,U9",TI_DWQ0011A_SOIC-11_HV,C19089118,TPSI2140QDWQRQ1,2,"1200
 ADS1220IPWR,U10,TSSOP-16_4.4x5mm_P0.65mm,C48263,ADS1220IPWR,1,"24-bit, internal 2.048 V ref, PGA bypassed, single-ended vs AVSS. CLK=DGND -> internal osc. REFP0/REFN0/AIN3 floating (SBAS501D 9.1.5)"
 HV tap,J3,Molex_Micro-Fit_3.0_43650-0300_1x03_P3.00mm_Horizontal,C503478,Molex 43650-0300,1,"HAND-SOLDER (not in CPL). 1 = HV+ (pack side, after pack fuse), 3 = HV-. Inline HV fuses in the harness"
 Chassis E/KE,J4,Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal,,Molex 43650-0200 (not at LCSC: Digi-Key/Mouser),1,HAND-SOLDER (not in CPL). Two SEPARATE wires to chassis (different studs if possible). Never link E and KE on the board
+BAT54S,"D9,D10,D11",SOT-23,C171786,BAT54S,3,"Clamp to 3V3_LV / GND (load dump, ESD)"
+SRV05-4,U11,SOT-23-6,C2836319,SRV05-4 (MSKSEMI),1,ESD on the J2 UART pins

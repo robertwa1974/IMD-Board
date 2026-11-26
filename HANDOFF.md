@@ -201,7 +201,8 @@ The same decoder reads the DIY IMD later, since outputs are IR155-compatible.
    (1 M, 300 k, 100 k, 50 k from HV+ to chassis; confirm OKHS drops near 100 k; pull E or KE -> 50 Hz).
 4. IMD schematic + PCB: FIRST PASS DONE (see `DESIGN_NOTES.md` for decisions: R0 480k, 4.8 MOhm sense
    strings, TPSI2140-Q1 switches instead of PhotoMOS, external ADS1220, E/KE dual divider for
-   chassis-loss detection; 106 x 66 mm board overhanging the economizer by 30 mm). Open: review,
+   chassis-loss detection; 110 x 66 mm board overhanging the economizer by 34 mm; stand-alone
+   harness plug J2 with 12 V-level contactor/inhibit inputs). Open: review,
    LCSC numbers for the generic parts, then order.
 5. IMD firmware: FIRST PASS DONE (`src/imd/`, `lib/imd_core/`, see DESIGN_NOTES "Firmware").
    Host-tested against a simulated vehicle; not yet run on a Nucleo or the board.

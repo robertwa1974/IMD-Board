@@ -31,8 +31,12 @@ _counters = {}
 
 
 def _next_ref(prefix):
-    _counters[prefix] = _counters.get(prefix, 0) + 1
-    return f"{prefix}{_counters[prefix]}"
+    used = {p["ref"] for p in parts}   # skip refs given explicitly (e.g. D8)
+    while True:
+        _counters[prefix] = _counters.get(prefix, 0) + 1
+        ref = f"{prefix}{_counters[prefix]}"
+        if ref not in used:
+            return ref
 
 
 def part(prefix, lib_id, value, footprint, pins, block, mpn="", lcsc="", note="", ref=None, dnp=False):
@@ -74,10 +78,15 @@ part("J", "Connector_Generic:Conn_02x06_Odd_Even", "Stack header 2x6",
      note="Footprint on top side at the same XY/rotation as economizer J4; header inserted from below")
 
 B = "Stand-alone connector"
-part("J", "Connector_Generic:Conn_01x04", "Micro-Fit 1x4",
-     "Connector_Molex:Molex_Micro-Fit_3.0_43650-0400_1x04_P3.00mm_Horizontal",
-     {1: "12V_J2", 2: "GND", 3: "IMD_MHS", 4: "IMD_OKHS"}, B, ref="J2", mpn="Molex 43650-0400", lcsc="C277684",
-     note="Only when NOT stacked: permanent 12 V, GND, IR155-style MHS/OKHS to VCU")
+# Everything a stand-alone IMD needs on one harness plug (pins 1-6 outer row, 7-12 inner row).
+# The 12 V-level inputs and the UART are conditioned in the "Stand-alone inputs" block (end of file).
+part("J", "Connector_Generic:Conn_02x06_Top_Bottom", "Micro-Fit 2x6",
+     "Connector_Molex:Molex_Micro-Fit_3.0_43045-1200_2x06_P3.00mm_Horizontal",
+     {1: "12V_J2", 2: "GND", 3: "IMD_MHS", 4: "IMD_OKHS", 5: "GND", 6: None,
+      7: "CONT1_J2", 8: "CONT2_J2", 9: "INHIBIT_J2", 10: "GND", 11: "UART_IN_J2", 12: "UART_OUT_J2"},
+     B, ref="J2", mpn="Molex 43045-1200", lcsc="C277636",
+     note="Stand-alone: 1 +12V, 2/5/10 GND, 3 MHS, 4 OKHS, 6 spare, 7 CONT1, 8 CONT2, 9 INHIBIT (12 V level), "
+          "11 UART into IMD, 12 UART from IMD (3.3 V)")
 
 # --------------------------------------------------------------------------- LV power
 B = "LV power input"
@@ -263,8 +272,27 @@ part("J", "Connector_Generic:Conn_01x02", "Chassis E/KE", "Connector_Molex:Molex
      {1: "E", 2: "KE"}, B, ref="J4", mpn="Molex 43650-0200 (not at LCSC: Digi-Key/Mouser)",
      note="Two SEPARATE wires to chassis (different studs if possible). Never link E and KE on the board")
 
+# --------------------------------------------------------------------------- stand-alone inputs
+# Added last so existing reference designators do not change.
+# CONT1/CONT2/INHIBIT from J2 are vehicle-level (12 V) signals: 22k + 10k divider onto the same
+# nets the stacking header drives at 3.3 V, plus a BAT54S clamp to 3V3_LV / GND.
+#   high above ~8 V (2.31 V = ISO7763 VIH at the node), low below ~3.4 V, 36 V load dump -> ~1.5 mA
+#   into the clamp. Stacked, the economizer's 3.3 V through its 1k still gives ~3.0 V at the node.
+B = "Stand-alone inputs"
+for src, net in (("CONT1_J2", "CONT1_CLOSED"), ("CONT2_J2", "CONT2_CLOSED"), ("INHIBIT_J2", "IMD_INHIBIT")):
+    R("22k", src, net, B, note="12 V-level input: divider top")
+    R("10k", net, "GND", B, note="Divider bottom (with the 100k pull-down: 9.1k)")
+    part("D", "Diode:BAT54S", "BAT54S", FP_SOT23, {1: "GND", 2: "3V3_LV", 3: net}, B,
+         mpn="BAT54S", lcsc="C171786", note="Clamp to 3V3_LV / GND (load dump, ESD)")
+# 3.3 V UART for a USB-serial adapter (calibration, status) when there is no economizer.
+R("1k", "UART_IN_J2", "UART_TO_IMD", B, note="Series protection; a 5 V adapter is clamped by U11")
+R("1k", "UART_FROM_IMD", "UART_OUT_J2", B, note="Series protection")
+part("U", "Power_Protection:SRV05-4", "SRV05-4", "Package_TO_SOT_SMD:SOT-23-6",
+     {1: "UART_IN_J2", 2: "GND", 3: "UART_OUT_J2", 4: None, 5: "3V3_LV", 6: None}, B,
+     mpn="SRV05-4 (MSKSEMI)", lcsc="C2836319", note="ESD on the J2 UART pins")
+
 # --------------------------------------------------------------------------- mechanical
-# H1-H4 on the economizer's 69 x 59 grid; H5/H6 support the 30 mm overhang on the HV side.
+# H1-H4 on the economizer's 69 x 59 grid; H5/H6 support the 34 mm overhang on the HV side.
 for i in range(6):
     part("H", "Mechanical:MountingHole", "M3", "MountingHole:MountingHole_3.2mm_M3", {}, "Mechanical")
 

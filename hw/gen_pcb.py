@@ -5,13 +5,13 @@ Stage "place":  footprints, nets, outline (notch + isolation slots), HV tracks (
 Stage "finish": import Freerouting's imd.ses, add GND (LV) and GND_HV pours, fill, save.
 
 Floorplan (mm, origin top-left, 76 x 66, same outline and M3 holes as the economizer):
-  LV domain x < 31 (left): stacking header bottom-left (same XY as economizer J4), stand-alone
+  LV domain x < 35 (left): stacking header bottom-left (same XY as economizer J4), stand-alone
     connector on the left edge, buck top-left, MHS/OKHS drivers, input protection.
-  Barrier column x = 35: UCC12050, ISO7763F, ISO7721 straddle it; 8 mm copper-free gap x 31..39,
+  Barrier column x = 39: UCC12050, ISO7763F, ISO7721 straddle it; 8 mm copper-free gap x 35..43,
     milled slots under the barrier packages.
-  HV domain x > 33: zone A (x 39..59) LDO, MCU, ADC, sense low ends; zone B: two TPSI2140 with
-    their switch pads facing right, five HV strings as horizontal rows (HV end right, x ~ 92),
-    HV tap (HV+/HV-) and E/KE connectors on the right edge of the 30 mm overhang.
+  HV domain x > 33: zone A (x 43..63) LDO, MCU, ADC, sense low ends; zone B: two TPSI2140 with
+    their switch pads facing right, five HV strings as horizontal rows (HV end right, x ~ 96),
+    HV tap (HV+/HV-) and E/KE connectors on the right edge of the 34 mm overhang.
   Notch over economizer J1 (latch access): x 25..51, y 0..8.
   H2/H4 (economizer grid) and H5/H6 (overhang support) are in the HV domain: NYLON hardware.
 """
@@ -30,10 +30,10 @@ from gen_sch import uid  # noqa: E402
 FPDIR = r"C:\Program Files\KiCad\10.0\share\kicad\footprints"
 PCB = os.path.join(HERE, "imd.kicad_pcb")
 PLACED = os.path.join(HERE, "imd_placed.kicad_pcb")
-W, H = 106.0, 66.0          # 76 x 66 over the economizer + 30 mm overhang (HV side)
+W, H = 110.0, 66.0          # 76 x 66 over the economizer + 34 mm overhang (HV side)
 NOTCH = (25.0, 51.0, 8.0)          # x0, x1, depth
-BARRIER_X = 35.0
-LV_MAX_X, HV_MIN_X = 31.0, 39.0
+BARRIER_X = 39.0
+LV_MAX_X, HV_MIN_X = 35.0, 43.0
 
 HV_NETS = ["HV_P", "E", "KE", "R0P_SW", "R0N_SW"] + [f"{s}_{i}" for s in ("R0P", "R0N", "VBUS", "VE", "VKE")
                                                      for i in (1, 2, 3)]
@@ -52,8 +52,8 @@ def pt(x, y):
 PLACE = {
     # ---- LV: connectors and input
     "J1": (9.5, 56.0, 90),           # same XY/rotation as economizer J4 (header inserted from below)
-    "J2": (9.46, 44.0, 90),          # stand-alone Micro-Fit, mating face to the left edge
-    "D2": (19.0, 41.2, 0), "D1": (19.0, 45.0, 0), "D8": (19.0, 48.8, 0), "C1": (13.5, 42.5, 90), "C2": (13.5, 46.6, 90),
+    "J2": (9.46, 47.4, 90),          # stand-alone Micro-Fit, mating face to the left edge
+    "D2": (22.5, 41.2, 0), "D1": (22.5, 45.0, 0), "D8": (22.5, 48.8, 0), "C1": (16.8, 42.5, 90), "C2": (16.8, 46.6, 90),
     # ---- LV: 5 V buck, top-left (H1 keep-out at the corner, J1-latch notch from x 25)
     "U1": (11.5, 5.0, 0), "C5": (11.5, 1.9, 0), "L1": (18.5, 4.6, 0), "D3": (18.0, 10.2, 0),
     "C4": (8.3, 10.0, 90), "R1": (11.5, 9.0, 0), "C3": (11.5, 10.8, 0),
@@ -63,43 +63,49 @@ PLACE = {
     "U2": (19.0, 15.5, 0), "C8": (15.5, 15.5, 90), "C9": (22.5, 15.5, 90),
     "R4": (4.0, 15.0, 90), "D4": (4.0, 18.5, 90),
     # ---- LV: barrier-side parts (U3/U4/U5 LV pins at x ~ 30.3)
-    "C10": (27.3, 15.3, 270), "C11": (24.6, 15.3, 90), "R5": (24.5, 18.8, 0),
-    "C15": (26.4, 21.5, 0), "R6": (26.4, 23.3, 0), "R11": (26.4, 25.1, 0),
-    "R8": (23.3, 23.3, 0), "R9": (23.3, 25.1, 0), "R10": (23.3, 26.9, 0),
-    "C17": (26.4, 41.6, 0), "R7": (26.4, 43.4, 0),
+    "C10": (31.3, 15.3, 270), "C11": (28.6, 15.3, 90), "R5": (28.5, 18.8, 0),
+    "C15": (30.4, 21.5, 0), "R6": (30.4, 23.3, 0), "R11": (30.4, 25.1, 0),
+    "R8": (27.3, 23.3, 0), "R9": (27.3, 25.1, 0), "R10": (27.3, 26.9, 0),
+    "C17": (30.4, 41.6, 0), "R7": (30.4, 43.4, 0),
     # ---- LV: MHS driver (y 20..30)
-    "R15": (6.0, 23.5, 0), "D5": (6.0, 27.8, 0), "Q2": (12.5, 23.5, 0), "R13": (12.5, 20.6, 0),
+    "R15": (6.0, 23.5, 0), "D5": (21.7, 28.6, 0), "Q2": (12.5, 23.5, 0), "R13": (12.5, 20.6, 0),
     "R14": (12.5, 26.5, 0), "Q1": (16.5, 23.5, 0), "R12": (16.5, 26.5, 0),
     # ---- LV: OKHS driver (y 30..39)
-    "Q4": (13.5, 32.0, 0), "R17": (13.5, 35.0, 0), "R18": (13.5, 36.8, 0),
-    "R19": (20.5, 32.5, 0), "D6": (20.5, 37.0, 0), "Q3": (26.5, 33.0, 90), "R16": (26.5, 36.5, 0),
+    "Q4": (17.5, 32.3, 0), "R17": (17.5, 35.3, 0), "R18": (17.5, 37.1, 0),
+    "R19": (24.5, 32.8, 0), "D6": (24.5, 37.2, 0), "Q3": (30.5, 33.0, 90), "R16": (30.5, 36.5, 0),
+    # ---- LV: stand-alone inputs (J2 pins 7-12): clamps and dividers right of the stacking header,
+    # UART protection below it
+    "D9": (28.5, 47.2, 0), "D10": (28.5, 51.0, 0), "D11": (28.5, 54.8, 0),
+    "R52": (32.8, 46.6, 90), "R53": (32.8, 50.0, 90), "R54": (32.8, 53.4, 90),
+    "R55": (32.8, 56.8, 90), "R56": (32.8, 60.2, 90), "R57": (32.8, 63.6, 90),
+    "U11": (14.0, 61.5, 0), "R58": (19.0, 60.6, 0), "R59": (19.0, 62.6, 0),
     # ---- barrier
     "U3": (BARRIER_X, 14.5, 0),      # UCC12050: primary (pins 1-8) left = LV
     "U4": (BARRIER_X, 27.0, 180),    # ISO7763F: side 1 (HV) to the right
     "U5": (BARRIER_X, 37.5, 180),    # ISO7721: side 1 (HV) to the right
-    # ---- HV zone A (x 39..59): supply, MCU, ADC, sense low ends
-    "C12": (42.4, 11.5, 90), "C13": (42.4, 15.5, 90), "C14": (42.4, 23.0, 90), "C16": (42.4, 34.0, 90),
-    "U6": (47.0, 11.0, 0), "C18": (47.0, 14.6, 0), "C19": (51.5, 11.0, 90),
-    "R20": (55.0, 11.0, 0), "R21": (55.0, 12.8, 0), "C20": (55.0, 14.6, 0),
-    "U7": (50.0, 25.0, 0), "C21": (46.0, 18.6, 0), "C22": (50.0, 18.6, 0), "C23": (53.5, 32.5, 0),
-    "U10": (50.0, 37.0, 0), "C29": (46.5, 41.4, 0), "C30": (50.0, 41.4, 0), "C31": (53.5, 41.4, 0),
-    "R51": (56.0, 35.5, 90),
-    "R37": (47.0, 45.0, 0), "R38": (47.0, 46.8, 0), "C26": (47.0, 48.6, 0),    # VBUS
-    "R43": (51.0, 45.0, 0), "R44": (51.0, 46.8, 0), "C27": (51.0, 48.6, 0),    # VE
-    "R49": (55.0, 45.0, 0), "R50": (55.0, 46.8, 0), "C28": (55.0, 48.6, 0),    # VKE
-    "J5": (43.0, 52.0, 90), "R22": (54.0, 56.0, 0), "D7": (54.0, 58.0, 0),
-    "C24": (57.0, 18.4, 90), "R27": (57.0, 22.0, 90),
-    "C25": (57.0, 32.0, 90), "R32": (57.0, 41.0, 90),
+    # ---- HV zone A (x 43..63): supply, MCU, ADC, sense low ends
+    "C12": (46.4, 11.5, 90), "C13": (46.4, 15.5, 90), "C14": (46.4, 23.0, 90), "C16": (46.4, 34.0, 90),
+    "U6": (51, 11.0, 0), "C18": (51, 14.6, 0), "C19": (55.5, 11.0, 90),
+    "R20": (59, 11.0, 0), "R21": (59, 12.8, 0), "C20": (59, 14.6, 0),
+    "U7": (54, 25.0, 0), "C21": (50, 18.6, 0), "C22": (54, 18.6, 0), "C23": (57.5, 32.5, 0),
+    "U10": (54, 37.0, 0), "C29": (50.5, 41.4, 0), "C30": (54, 41.4, 0), "C31": (57.5, 41.4, 0),
+    "R51": (60, 35.5, 90),
+    "R37": (51, 45.0, 0), "R38": (51, 46.8, 0), "C26": (51, 48.6, 0),    # VBUS
+    "R43": (55, 45.0, 0), "R44": (55, 46.8, 0), "C27": (55, 48.6, 0),    # VE
+    "R49": (59, 45.0, 0), "R50": (59, 46.8, 0), "C28": (59, 48.6, 0),    # VKE
+    "J5": (47, 52.0, 90), "R22": (58, 56.0, 0), "D7": (58, 58.0, 0),
+    "C24": (61, 18.4, 90), "R27": (61, 22.0, 90),
+    "C25": (61, 32.0, 90), "R32": (61, 41.0, 90),
     # ---- HV zone B: switches (switch pads face right), strings as rows, connectors on the right edge
-    "U8": (65.0, 21.2, 0),           # R0P: S1 (pin 11, top-right) = R0P_SW, S2 (pin 9) = E
-    "U9": (65.0, 34.5, 0),           # R0N: S1 (pin 11, top-right) = E, S2 (pin 9) = R0N_SW
-    "J3": (96.54, 12.0, 270),        # 1 = HV+ (y 12), 2 unloaded, 3 = HV- (y 18); mating face right
-    "J4": (96.54, 28.0, 270),        # 1 = E (y 28), 2 = KE (y 31)
+    "U8": (69, 21.2, 0),           # R0P: S1 (pin 11, top-right) = R0P_SW, S2 (pin 9) = E
+    "U9": (69, 34.5, 0),           # R0N: S1 (pin 11, top-right) = E, S2 (pin 9) = R0N_SW
+    "J3": (100.54, 12.0, 270),        # 1 = HV+ (y 12), 2 unloaded, 3 = HV- (y 18); mating face right
+    "J4": (100.54, 28.0, 270),        # 1 = E (y 28), 2 = KE (y 31)
     # ---- mounting holes: economizer grid + overhang support
     "H1": (3.5, 3.5, 0), "H2": (72.5, 3.5, 0), "H3": (3.5, H - 3.5, 0), "H4": (72.5, H - 3.5, 0),
     "H5": (W - 3.5, 3.5, 0), "H6": (W - 3.5, H - 3.5, 0),
 }
-ROW_X = (90.6, 85.9, 81.2, 76.5)    # HV end on the right (x ~ 92), low end on the left (x ~ 75)
+ROW_X = (94.6, 89.9, 85.2, 80.5)    # HV end on the right (x ~ 96), low end on the left (x ~ 79)
 ROW_Y = {"VBUS": 12.0, "R0P": 17.0, "VE": 23.0, "VKE": 33.0, "R0N": 38.7}
 
 
@@ -267,7 +273,7 @@ def hv_routes(board):
     s2, s1, je, ve = P("U8", 9), P("U9", 11), P("J4", 1), P("R39", 1)
     track(board, [s2, s1], n("E"))
     track(board, [(s2[0], je[1]), je], n("E"))
-    track(board, [(94.0, je[1]), (94.0, ve[1]), ve], n("E"))
+    track(board, [(98.0, je[1]), (98.0, ve[1]), ve], n("E"))
     # Escape stubs: the low end of each string sits 1.8 mm from an HV node of the same string, which
     # the autorouter (one 2.5 mm HV clearance for everything) cannot leave. A locked stub to a via
     # clear of the HV copper gives it a legal start point. GND_HV's via drops into the bottom pour.
@@ -286,7 +292,7 @@ def hv_routes(board):
     track(board, [(vx, vy), (vx - 1.5, vy), (cx, cy)], n("5V_LV"), 0.4)
     # KE: J4.2 -> VKE row HV end
     jk, vk = P("J4", 2), P("R45", 1)
-    track(board, [jk, (94.0, jk[1]), (94.0, vk[1]), vk], n("KE"))
+    track(board, [jk, (98.0, jk[1]), (98.0, vk[1]), vk], n("KE"))
 
 
 def strip_unused_pad(board, ref, num):
@@ -485,15 +491,15 @@ def place():
     barrier_keepout(board)
     hv_routes(board)
     # Silkscreen
-    silk(board, "LV", 16.0, 63.5, 1.5)
-    silk(board, "HV  DANGER  450 V", 55.0, 63.5, 1.5)
-    silk(board, "HV+", 93.0, 10.0, 0.9)
-    silk(board, "HV-", 93.0, 20.0, 0.9)
-    silk(board, "E", 98.0, 25.8, 0.9)
-    silk(board, "KE", 98.0, 33.3, 0.9)
+    silk(board, "LV", 25.0, 63.0, 1.5)
+    silk(board, "HV  DANGER  450 V", 56.0, 63.5, 1.5)
+    silk(board, "HV+", 97.0, 10.0, 0.9)
+    silk(board, "HV-", 97.0, 20.0, 0.9)
+    silk(board, "E", 102.0, 25.8, 0.9)
+    silk(board, "KE", 102.0, 33.3, 0.9)
     for x, y in ((72.5, 8.8), (72.5, 57.2), (W - 10.0, 3.5), (W - 3.5, 57.2)):
         silk(board, "NYLON", x, y, 0.8)
-    silk(board, "IMD board rev A - DIY, uncertified", 50, 30, 1.0, pcbnew.B_SilkS)
+    silk(board, "IMD board rev A - DIY, uncertified", 54, 30, 1.0, pcbnew.B_SilkS)
     place_refs(board)
     u3 = board.FindFootprintByReference("U3").Reference()
     u3.SetPosition(pt(BARRIER_X, 20.8)); u3.SetVisible(True)
@@ -577,7 +583,7 @@ def finish():
     e = 0.4
     x0, x1, d = NOTCH
     lv = [(e, e), (x0 - e, e), (x0 - e, d + e), (LV_MAX_X, d + e), (LV_MAX_X, H - e), (e, H - e)]
-    hv_top = [(HV_MIN_X, d + e), (x1 + e, d + e), (x1 + e, e), (59.0, e), (59.0, 43.0), (W - e, 43.0),
+    hv_top = [(HV_MIN_X, d + e), (x1 + e, d + e), (x1 + e, e), (63.0, e), (63.0, 43.0), (W - e, 43.0),
               (W - e, H - e), (HV_MIN_X, H - e)]
     hv_bot = [(HV_MIN_X, d + e), (x1 + e, d + e), (x1 + e, e), (W - e, e), (W - e, H - e), (HV_MIN_X, H - e)]
     gnd, gndhv = board.FindNet("GND"), board.FindNet("GND_HV")
@@ -590,7 +596,7 @@ def finish():
     lvz = [pour(board, gnd, pcbnew.B_Cu, lv), pour(board, gnd, pcbnew.F_Cu, lv)]
     hvz = [pour(board, gndhv, pcbnew.B_Cu, hv_bot), pour(board, gndhv, pcbnew.F_Cu, hv_top)]
     n1 = stitch(board, gnd, lvz, 1.5, LV_MAX_X - 1.0)
-    n2 = stitch(board, gndhv, hvz, HV_MIN_X + 1.0, 59.0)
+    n2 = stitch(board, gndhv, hvz, HV_MIN_X + 1.0, 63.0)
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
     removed = prune_vias(board, lvz + hvz)
     # Router GND_HV tracks inside the 3.5 mm margin around HV through-hole pins are redundant (the

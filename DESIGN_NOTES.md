@@ -146,7 +146,7 @@ Within the 1 W budget and the economizer's 0.2 A PTC.
 | Ref | Part | Pins |
 |---|---|---|
 | J1 | 2x6 elevated male header | Matches economizer J4 (table in HANDOFF.md section 6) |
-| J2 | Micro-Fit 3.0 1x4 | 12 V, GND, MHS, OKHS: for stand-alone use. 12 V is diode-ORed with J1, so both may be connected |
+| J2 | Micro-Fit 3.0 2x6 (43045-1200) | Stand-alone harness plug: 1 +12 V, 2/5/10 GND, 3 MHS, 4 OKHS, 6 spare, 7 CONT1, 8 CONT2, 9 INHIBIT (12 V level), 11 UART in, 12 UART out (3.3 V). 12 V is diode-ORed with J1, so both may be connected (section "Stand-alone use") |
 | J3 | Micro-Fit 3.0 1x3 (600 V rated) | 1 HV+ (pack side, after the pack fuse), 3 HV-. Pin 2 unloaded, no copper |
 | J4 | Micro-Fit 3.0 1x2 | E, KE: two separate wires to chassis |
 | J5 | 1x5 2.54 mm | SWD (HV side) |
@@ -165,13 +165,13 @@ java -jar %USERPROFILE%/Documents/KiCad/10.0/3rdparty/plugins/app_freerouting_ki
 State: DRC 0 errors, 0 unconnected (one intended warning: J3 footprint differs from the library
 because its middle pin's copper is removed).
 
-- **106 x 66 mm**: the economizer's 76 x 66 plus a 30 mm overhang on the right (HV side). Same four M3
+- **110 x 66 mm**: the economizer's 76 x 66 plus a 34 mm overhang on the right (HV side). Same four M3
   holes (69 x 59 grid) and stacking-header position as the economizer; two extra holes (H5, H6) support
   the overhang. **H2, H4, H5, H6 are in the HV domain: nylon standoffs and screws.**
 - Notch over the economizer's J1 latch: x 25..51, y 0..8.
-- **LV | barrier | HV**: LV x < 31, copper-free gap x 31..39 (keep-out area), barrier parts centred on
-  x = 35 with milled 1.5 mm slots under them. All barrier parts have >= 8 mm creepage.
-- HV zone A (x 39..59): LDO, MCU, ADC, sense low ends. Zone B: two TPSI2140, the five HV strings as
+- **LV | barrier | HV**: LV x < 35, copper-free gap x 35..43 (keep-out area), barrier parts centred on
+  x = 39 with milled 1.5 mm slots under them. All barrier parts have >= 8 mm creepage.
+- HV zone A (x 43..63): LDO, MCU, ADC, sense low ends. Zone B: two TPSI2140, the five HV strings as
   horizontal rows (HV end on the right), HV connectors on the right edge.
 - **J3 (HV+/HV-) and J4 (E/KE) on the right edge**, facing out; J3's unused middle position has no copper,
   so HV+ and HV- are 6 mm apart.
@@ -203,7 +203,7 @@ because its middle pin's copper is removed).
 Before ordering:
 1. Every assembled part has an LCSC number (table `LCSC_GENERIC` in `design.py`, checked 2026-11-26).
    Hand-soldered: J1 (elevated 2x6 male header, length to suit 15 mm standoffs + the 8.5 mm socket),
-   J5 (1x5 header), J4 (Molex 43650-0200: not at LCSC, buy from Digi-Key/Mouser). J2/J3 are at LCSC
+   J5 (1x5 header), J4 (Molex 43650-0200: not at LCSC, buy from Digi-Key/Mouser). J2 (C277636) / J3 are at LCSC
    but through-hole, so they are hand-soldered too (or add them to JLCPCB's THT assembly).
 2. JLCPCB rotation check on the CPL preview (SOIC/TSSOP/TSOT orientations).
 3. Look at the 3D renders in `hw/fab/` and the routing in KiCad once yourself. Known compromise: one
@@ -309,7 +309,7 @@ The parser is strict (prefix, version, exactly 11 fields, codes, number ranges, 
 (`test/test_proto`) check every single-bit corruption of a frame is rejected, and that a valid
 checksum does not rescue a malformed field.
 
-To the IMD: one command per line (`LOG ON|OFF`, `CAL ...`). The economizer forwards them with
+To the IMD: one command per line (`LOG ON|OFF`, `CFG ...`, `CAL ...`). The economizer forwards them with
 `imd send <text>` and refuses `imd send CAL ...` unless both contactor channels are off.
 
 Economizer side (its firmware v3.1, `OPERATORS_MANUAL.md` section 8.5): `imd` shows the last frame,
@@ -345,7 +345,8 @@ Equipment:
 - Rcal: about 1 MOhm, rated >= 1 kV (e.g. Vishay VR37 1M), value measured with the Fluke.
 - USB-serial adapter (3.3 V) on the stacking header pins 9 (TX into the IMD), 10 (RX), GND,
   or the economizer once it forwards the UART. 115200 baud, one command per line.
-- 12 V to the board (stacking header or J2).
+- 12 V to the board (stacking header or J2 pin 1). Stand-alone, the USB-serial adapter goes on J2 pins
+  11 (into the IMD), 12 (from the IMD) and 10 (GND).
 
 **HV safety:** the supply is lethal-current-capable at 400 V even when limited; work with one hand,
 connect with the supply off, and discharge (both R0 switches are open between steps; the 4.8 MOhm
@@ -367,6 +368,41 @@ Steps:
 `CAL ABORT` stops a running step; `CAL CLEAR` goes back to nominal values. During a step the board is
 not monitoring: MHS shows device error (40 Hz), OKHS / IMD_OK stay low, INHIBIT and the contactor
 inputs are ignored.
+
+## Stand-alone use (no economizer)
+
+Likely for builds with contactors that have their own economizer. Everything goes through J2 (2x6
+Micro-Fit); leave J1 (the stacking header) unfitted.
+
+| J2 pin | Signal | Level | Notes |
+|---|---|---|---|
+| 1 | +12 V | permanent 12 V | same feed as the VCU (see HANDOFF section 6); diode-ORed with J1 |
+| 2, 5, 10 | GND | | vehicle ground |
+| 3 | MHS | ~9.6 V high | IR155-style PWM to the VCU |
+| 4 | OKHS | ~9.6 V high | IR155-style OK to the VCU |
+| 6 | spare | | not connected |
+| 7, 8 | CONT1, CONT2 | 12 V level | "contactor 1/2 closed": restarts the cycle and labels results pack/system. Optional |
+| 9 | INHIBIT | 12 V level | high = stop measuring (DC fast charging). Optional |
+| 11 | UART in | 3.3 V | from a USB-serial adapter's TX: calibration and commands |
+| 12 | UART out | 3.3 V | to the adapter's RX: `$IMD` frames, `#` status, replies |
+
+Inputs 7-9: 22k + 10k divider (with the 100k pull-down) onto the same nets the stacking header drives,
+clamped by a BAT54S to 3V3_LV / GND. Above ~8 V reads high, below ~3.4 V low; up to the 36 V load
+dump (~1.5 mA into the clamp). Unconnected they read low: contactors open, measuring. Stacked, the
+economizer's 3.3 V through its 1k still reads high (~3.0 V at the isolator input).
+
+Where to take CONT1/CONT2 from:
+- A high-side switched coil feed (12 V when the contactor is commanded on): wire it straight in.
+- A low-side VCU output (pulls the coil's - side to ground when on): add a 10k pull-up to 12 V on the
+  wire and send `CFG CONT1 LOW` (and/or `CFG CONT2 LOW`). Stored in flash, shown at start-up and by `CFG`.
+  Never set LOW on a board that is stacked on the economizer (it drives active-high).
+- INHIBIT is active-high only, on purpose: an inverted input left unwired would stop the IMD measuring.
+
+UART pins 11/12: 1k series and an SRV05-4 ESD array; a 5 V adapter is tolerated (clamped), 3.3 V is
+preferred.
+
+Mounting stand-alone: the bottom-layer pour is at HV- potential. Mount on >= 10 mm nylon standoffs on
+all six holes, never flat on metal; an insulating sheet under the board is cheap insurance.
 
 ## Open / verify
 

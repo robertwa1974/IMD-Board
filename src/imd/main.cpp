@@ -10,6 +10,7 @@
 //   replies       plain text
 // Commands, one per line:
 //   LOG ON | LOG OFF  human status line on / off (frames are always sent)
+//   CFG [CONT1|CONT2 HIGH|LOW]  active level of the contactor inputs (stand-alone J2 wiring)
 //   CAL               show the stored calibration
 //   CAL GAIN <volts>  E and KE tied to HV+, <volts> = HV+ to HV- read on a meter
 //   CAL BRIDGE <ohms> known resistor from HV+ to the floating E/KE node (k / M suffix allowed)
@@ -112,6 +113,39 @@ static void saveCal() {
 
 static void restartMonitor() { monitor = imd::Monitor(imd::applyCal(imd::Config(), cal)); }
 
+// Stand-alone input polarity, stored in the same flash page as the calibration (offset 64).
+// CONT1/CONT2 can be inverted for a low-side VCU output (pulled up to 12 V externally: low = on).
+// INHIBIT is deliberately not invertible: inverted and left unwired it would stop all measuring.
+// Stacked on the economizer both must stay "high" (the economizer drives active-high).
+struct InputCfg {
+  uint32_t magic = 0x49444D49;   // "IMDI"
+  uint8_t invert = 0;            // bit 0 CONT1, bit 1 CONT2
+  uint8_t pad[3] = {0, 0, 0};
+  uint32_t crc = 0;
+};
+static InputCfg inCfg;
+constexpr uint32_t kInCfgOffset = 64;
+static_assert(sizeof(imd::Calibration) <= kInCfgOffset, "calibration record overlaps the input settings");
+
+static void loadInCfg() {
+  uint8_t* p = reinterpret_cast<uint8_t*>(&inCfg);
+  for (uint32_t i = 0; i < sizeof inCfg; i++) p[i] = eeprom_buffered_read_byte(kInCfgOffset + i);   // after loadCal's fill
+  if (inCfg.magic != 0x49444D49 || inCfg.crc != imd::crc32(&inCfg, offsetof(InputCfg, crc)) || inCfg.invert > 3)
+    inCfg = InputCfg();
+}
+
+static void saveInCfg() {
+  inCfg.crc = imd::crc32(&inCfg, offsetof(InputCfg, crc));
+  const uint8_t* p = reinterpret_cast<const uint8_t*>(&inCfg);
+  for (uint32_t i = 0; i < sizeof inCfg; i++) eeprom_buffered_write_byte(kInCfgOffset + i, p[i]);
+  eeprom_buffer_flush();
+}
+
+static void showInCfg() {
+  Serial.printf("CFG CONT1=%s CONT2=%s INHIBIT=HIGH (active level)\n",
+                (inCfg.invert & 1) ? "LOW" : "HIGH", (inCfg.invert & 2) ? "LOW" : "HIGH");
+}
+
 // ---------------------------------------------------------------- serial helpers (integer printf only)
 
 // Ohms -> "1234k" / "inf" for the status line.
@@ -180,13 +214,30 @@ static void command(char* line) {
   for (char* c = line; *c && !(*c >= '0' && *c <= '9'); c++)
     if (*c >= 'a' && *c <= 'z') *c = (char)(*c - 'a' + 'A');
   char* arg = strchr(line, ' ');
+  if (!strncmp(line, "CFG", 3)) {
+    const bool c1 = !strncmp(line, "CFG CONT1 ", 10), c2 = !strncmp(line, "CFG CONT2 ", 10);
+    if (c1 || c2) {
+      const char* lvl = line + 10;
+      const uint8_t bit = c1 ? 1 : 2;
+      if (!strcmp(lvl, "LOW")) inCfg.invert |= bit;
+      else if (!strcmp(lvl, "HIGH")) inCfg.invert &= (uint8_t)~bit;
+      else { Serial.println("? CFG CONT1|CONT2 HIGH|LOW"); return; }
+      saveInCfg();
+      restartMonitor();
+    } else if (strcmp(line, "CFG") != 0) {
+      Serial.println("? CFG | CFG CONT1 HIGH|LOW | CFG CONT2 HIGH|LOW");
+      return;
+    }
+    showInCfg();
+    return;
+  }
   if (!strcmp(line, "LOG ON") || !strcmp(line, "LOG OFF")) {
     logOn = line[5] == 'N';
     Serial.println(logOn ? "LOG on" : "LOG off (frames continue)");
     return;
   }
   if (strncmp(line, "CAL", 3) != 0) {
-    Serial.println("? commands: LOG ON|OFF | CAL | CAL GAIN <V> | CAL BRIDGE <ohms> | CAL ABORT | CAL CLEAR");
+    Serial.println("? commands: LOG ON|OFF | CFG ... | CAL | CAL GAIN <V> | CAL BRIDGE <ohms> | CAL ABORT | CAL CLEAR");
     return;
   }
   while (arg && *arg == ' ') arg++;
@@ -316,6 +367,7 @@ void setup() {
 
   Serial.begin(115200);
   loadCal();
+  loadInCfg();
   restartMonitor();
   SPI.setMOSI(pins::ADC_MOSI);
   SPI.setMISO(pins::ADC_MISO);
@@ -324,6 +376,7 @@ void setup() {
   adcOk = adc.begin();
   Serial.printf("IMD fw start, ADS1220 %s\n", adcOk ? "ok" : "NOT RESPONDING");
   showCal();
+  showInCfg();
 
   IWatchdog.begin(1000000);  // 1 s
 }
@@ -370,8 +423,8 @@ void loop() {
     in.ve = v[1] * cal.gVe;
     in.vke = v[2] * cal.gVke;
     in.viso = readViso();
-    in.cont1 = digitalRead(pins::CONT1);
-    in.cont2 = digitalRead(pins::CONT2);
+    in.cont1 = digitalRead(pins::CONT1) ^ (inCfg.invert & 1);
+    in.cont2 = digitalRead(pins::CONT2) ^ ((inCfg.invert >> 1) & 1);
     in.inhibit = digitalRead(pins::INHIBIT);
 
     if (mode == Mode::Run) {
