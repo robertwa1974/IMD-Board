@@ -4,7 +4,9 @@
 #include <unity.h>
 #include <math.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "imd_bridge.h"
+#include "imd_cal.h"
 #include "imd_mhs.h"
 #include "imd_monitor.h"
 #include "ir155_decoder.h"
@@ -24,6 +26,8 @@ struct Plant {
   float r0 = 480e3f;
   float rdivE = 4.818e6f, rdivKE = 4.818e6f;
   bool eBroken = false, keBroken = false, switchDead = false;
+  bool eTiedToHvp = false;            // calibration wiring: E and KE jumpered to HV+
+  float err[3] = {1.0f, 1.0f, 1.0f};  // per-channel gain error of the real hardware (VBUS, VE, VKE)
   float noise = 0.0f;           // +/- volts of pseudo-random noise on every reading
   float vch = 0.0f;             // chassis voltage
   uint32_t seed = 12345;
@@ -56,6 +60,10 @@ struct Plant {
       in.ve = vch + rnd();
     }
     in.vke = keBroken ? rnd() : vch + rnd();
+    if (eTiedToHvp) in.ve = in.vke = vbus + rnd();
+    in.vbus *= err[0];
+    in.ve *= err[1];
+    in.vke *= err[2];
     in.viso = 5.0f;
     return in;
   }
@@ -68,15 +76,23 @@ struct Sim {
   Outputs out;
   uint32_t t = 0;
   bool cont1 = false, inhibit = false;
+  float corr[3] = {1.0f, 1.0f, 1.0f};  // gain correction applied by the firmware (from calibration)
   explicit Sim(const Config& c = Config()) : mon(c) {}
+  Inputs sample() {
+    plant.advance(0.035f, out.r0p, out.r0n);
+    Inputs in = plant.read(out.r0p, out.r0n);
+    in.vbus *= corr[0];
+    in.ve *= corr[1];
+    in.vke *= corr[2];
+    t += 35;
+    return in;
+  }
   void run(float seconds) {
     const uint32_t steps = (uint32_t)(seconds * 1000.0f / 35.0f);
     for (uint32_t i = 0; i < steps; i++) {
-      plant.advance(0.035f, out.r0p, out.r0n);
-      Inputs in = plant.read(out.r0p, out.r0n);
+      Inputs in = sample();
       in.cont1 = cont1;
       in.inhibit = inhibit;
-      t += 35;
       out = mon.step(t, in);
     }
   }
@@ -287,6 +303,155 @@ static void test_noise_does_not_cause_false_trips() {
   assertRel(2e6f, s.mon.status().rp, 0.25f);
 }
 
+// ------------------------------------------------------------------ calibration
+
+// The "real" board for the calibration tests: R0, dividers and ADC gains all off nominal.
+static void misbuild(Plant& p) {
+  p.r0 = 492e3f;                 // nominal 480k
+  p.rdivE = p.rdivKE = 4.70e6f;  // nominal 4.818M each
+  p.err[0] = 1.012f; p.err[1] = 0.991f; p.err[2] = 1.006f;
+}
+
+static void feedGain(Plant& p, GainCal& g) {
+  for (;;) {
+    const Inputs in = p.read(false, false);  // both switches open
+    if (g.add(in.vbus, in.ve, in.vke)) return;
+  }
+}
+
+static void runGainCal(Sim& s, Calibration* cal, float vTrue = 250.0f) {
+  s.plant.vbus = vTrue;
+  s.plant.eTiedToHvp = true;
+  GainCal g;
+  g.start(vTrue);
+  feedGain(s.plant, g);
+  CalResult r = g.finish(cal);
+  TEST_ASSERT_TRUE_MESSAGE(r.ok, r.msg);
+  s.plant.eTiedToHvp = false;
+  s.corr[0] = cal->gVbus; s.corr[1] = cal->gVe; s.corr[2] = cal->gVke;
+}
+
+static CalResult runBridgeCal(Sim& s, Calibration* cal, float rcal) {
+  BridgeCal b;
+  b.start(rcal, Config());
+  for (int i = 0; i < 20000 && !b.done(); i++) {
+    Inputs in = s.sample();
+    s.out = b.step(s.t, in);
+  }
+  TEST_ASSERT_TRUE_MESSAGE(b.done(), "bridge calibration did not finish");
+  return b.finish(cal);
+}
+
+static void test_cal_crc_and_validation() {
+  Calibration c;
+  calSeal(&c);
+  TEST_ASSERT_TRUE(calValid(c));
+  Calibration bad = c;
+  bad.r0 += 1.0f;              // changed without resealing
+  TEST_ASSERT_FALSE(calValid(bad));
+  bad = c;
+  bad.gVe = 1.5f;              // sealed but absurd
+  calSeal(&bad);
+  TEST_ASSERT_FALSE(calValid(bad));
+  Calibration blank;
+  blank.magic = 0xFFFFFFFFu;   // erased flash
+  TEST_ASSERT_FALSE(calValid(blank));
+}
+
+static void test_gain_cal_recovers_channel_errors() {
+  Sim s;
+  misbuild(s.plant);
+  Calibration cal;
+  runGainCal(s, &cal);
+  TEST_ASSERT_FLOAT_WITHIN(1e-4f, 1.0f / 1.012f, cal.gVbus);
+  TEST_ASSERT_FLOAT_WITHIN(1e-4f, 1.0f / 0.991f, cal.gVe);
+  TEST_ASSERT_FLOAT_WITHIN(1e-4f, 1.0f / 1.006f, cal.gVke);
+  TEST_ASSERT_TRUE(cal.flags & Calibration::kGain);
+  TEST_ASSERT_TRUE(calValid(cal));
+}
+
+static void test_gain_cal_rejects_wrong_wiring() {
+  Sim s;
+  s.plant.vbus = 250.0f;       // E/KE NOT tied to HV+: they read the chassis, ~0 V
+  GainCal g;
+  g.start(250.0f);
+  feedGain(s.plant, g);
+  Calibration cal;
+  TEST_ASSERT_FALSE(g.finish(&cal).ok);
+  g.start(300.0f);             // typed the wrong reference voltage (meter says 250)
+  while (!g.add(250.0f, 250.0f, 250.0f)) {}
+  TEST_ASSERT_FALSE(g.finish(&cal).ok);
+}
+
+static void test_solve_cal_matches_forward_model() {
+  const float r0 = 495e3f, rdiv = 2.35e6f, rcal = 1e6f;
+  const float fP = settledFraction(rcal, INFINITY, r0, rdiv, true, false);
+  const float fN = settledFraction(rcal, INFINITY, r0, rdiv, false, true);
+  float r0c, rdivc;
+  TEST_ASSERT_TRUE(solveCal(fP, fN, rcal, &r0c, &rdivc));
+  assertRel(r0, r0c, 1e-3f);
+  assertRel(rdiv, rdivc, 1e-3f);
+  TEST_ASSERT_FALSE(solveCal(0.3f, 0.0f, rcal, &r0c, &rdivc));
+}
+
+static void test_bridge_cal_end_to_end() {
+  Sim s;
+  misbuild(s.plant);
+  Calibration cal;
+  runGainCal(s, &cal);
+  // Bench: 1 Mohm from HV+ to the floating E/KE node, nothing else, little capacitance.
+  s.plant.vbus = 250.0f;
+  s.plant.rp = 1e6f;
+  s.plant.rn = INFINITY;
+  s.plant.cy = 10e-9f;
+  CalResult r = runBridgeCal(s, &cal, 1e6f);
+  TEST_ASSERT_TRUE_MESSAGE(r.ok, r.msg);
+  assertRel(492e3f, cal.r0, 0.005f);
+  assertRel(2.35e6f, cal.rdiv, 0.005f);
+  TEST_ASSERT_TRUE(calValid(cal));
+
+  // In the vehicle: a fault at 75 ohm/V on HV+, healthy HV-.
+  const float rp = 30e3f, rn = 10e6f;
+  Sim cald(applyCal(Config(), cal));
+  misbuild(cald.plant);
+  cald.corr[0] = cal.gVbus; cald.corr[1] = cal.gVe; cald.corr[2] = cal.gVke;
+  cald.plant.rp = rp; cald.plant.rn = rn;
+  cald.run(25.0f);
+  Sim raw;                     // same hardware, no calibration
+  misbuild(raw.plant);
+  raw.plant.rp = rp; raw.plant.rn = rn;
+  raw.run(25.0f);
+  const float errCal = fabsf(cald.mon.status().rp / rp - 1.0f);
+  const float errRaw = fabsf(raw.mon.status().rp / rp - 1.0f);
+  char msg[96];
+  snprintf(msg, sizeof msg, "Rp error: uncalibrated %.2f %%, calibrated %.3f %%", errRaw * 100, errCal * 100);
+  TEST_MESSAGE(msg);
+  TEST_ASSERT_TRUE_MESSAGE(errCal < 0.01f, msg);
+  TEST_ASSERT_TRUE_MESSAGE(errCal < errRaw, msg);
+  assertRel(rn, cald.mon.status().rn, 0.05f);
+}
+
+static void test_bridge_cal_rejects_leaky_chassis() {
+  Sim s;
+  s.plant.vbus = 250.0f;
+  s.plant.rp = 1e6f;
+  s.plant.rn = 500e3f;         // E/KE node touching the bench earth / HV- through something
+  s.plant.cy = 10e-9f;
+  Calibration cal;
+  TEST_ASSERT_FALSE(runBridgeCal(s, &cal, 1e6f).ok);
+}
+
+static void test_bridge_cal_rejects_bad_setup() {
+  Calibration cal;
+  BridgeCal b;
+  b.start(50e3f, Config());    // Rcal out of range
+  TEST_ASSERT_TRUE(b.done());
+  TEST_ASSERT_FALSE(b.finish(&cal).ok);
+  Sim s;
+  s.plant.vbus = 0.0f;         // no HV on J3
+  TEST_ASSERT_FALSE(runBridgeCal(s, &cal, 1e6f).ok);
+}
+
 int main() {
   UNITY_BEGIN();
   RUN_TEST(test_solve_matches_forward_model);
@@ -305,5 +470,12 @@ int main() {
   RUN_TEST(test_contactor_change_restarts_and_labels_scope);
   RUN_TEST(test_large_y_cap_still_converges);
   RUN_TEST(test_noise_does_not_cause_false_trips);
+  RUN_TEST(test_cal_crc_and_validation);
+  RUN_TEST(test_gain_cal_recovers_channel_errors);
+  RUN_TEST(test_gain_cal_rejects_wrong_wiring);
+  RUN_TEST(test_solve_cal_matches_forward_model);
+  RUN_TEST(test_bridge_cal_end_to_end);
+  RUN_TEST(test_bridge_cal_rejects_leaky_chassis);
+  RUN_TEST(test_bridge_cal_rejects_bad_setup);
   return UNITY_END();
 }

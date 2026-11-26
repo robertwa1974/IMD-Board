@@ -70,9 +70,8 @@ Each: 4 x 1.2 MOhm 1206 + 18 kOhm 0.1 % bottom + 1 k / 100 nF anti-alias.
 - Settling (handoff example, Y = 200 nF, Rp = Rn = 20 M, Rdiv = 2.4 M): tau ~ 80 ms per phase.
   **Measure the real Y-capacitance before choosing firmware timing.**
 - `1/Rn = x - 1/Rdiv` from the handoff with Rdiv = 2.409 M (both dividers).
-- **Calibration:** strings and 18k bottoms are 1 % parts, so the three channels match only to ~1 %.
-  Firmware needs a one-time gain calibration per channel (known resistor HV+ to chassis, and the
-  measured pack voltage) before the readings near the 100 ohm/V threshold are trusted. Not written yet.
+- **Calibration:** strings and 18k bottoms are 1 % parts, so the three channels match only to ~1 %
+  and R0 / Rdiv are only known to ~1 %. A one-time bench calibration fixes both (see "Calibration").
   The Vbus divider is across the pack and does not enter the chassis equations.
 
 ### Chassis-connection (E/KE) monitoring
@@ -219,15 +218,61 @@ Behaviour:
 - INHIBIT: both switches open, outputs hold the last state. Contactor change: cycle restarts,
   result labelled "pack" or "system".
 - Independent watchdog (1 s): a hung loop resets the MCU, which drives every output low.
-- Flash use 61 % of 64 kB (integer-only printf).
+- Flash use ~49.5 kB, capped at 62 kB in `platformio.ini` (the last 2 kB page holds the calibration).
+  Integer-only printf and a hand-written number parser: newlib's float printf / strtof cost 10-20 kB.
 
-Host tests (`pio test -e native`): bridge solve over a 6 x 6 grid of Rp/Rn, extrapolation, MHS
+Host tests (`pio test -e native`, 28 tests): bridge solve over a 6 x 6 grid of Rp/Rn, extrapolation, MHS
 encode -> IR155 decode round trip, and the state machine against a simulated vehicle (Y-cap,
 leakage, broken E or KE wire, dead switch, no HV, inhibit, contactor change, 1 uF Y-cap, +/-0.5 V
-noise). Checked that the tests catch a disabled earth check and a disabled OKHS trip.
+noise), and both calibration steps (recovery of mis-built R0, Rdiv and channel gains; rejection of
+wrong wiring, a leaky bench chassis, bad Rcal and no HV). Checked that the tests catch a disabled
+earth check and a disabled OKHS trip.
 
 Not done yet: ADS1220 AVDD/reference self-monitor, UART protocol to the economizer, MHS/OKHS
 behaviour verified against Bender D00376, bench run on a Nucleo-G031K8.
+
+## Calibration
+
+Once per board, on the bench, before it goes in the truck. Code: `lib/imd_core/imd_cal.*` (maths,
+host-tested) and the `CAL` commands in `src/imd/main.cpp`. Stored in the last flash page with a CRC;
+a board without a valid calibration runs on nominal values and says `cal=--` in its status line.
+
+What it corrects:
+- **GAIN**: each ADC channel's gain (string + 18k + ADS1220), from one known voltage.
+- **BRIDGE**: the board's actual R0 and E||KE divider resistance (Rdiv), from one known resistor.
+  With Rp = Rcal and Rn open: `Gdiv = Gp (1 + c) / (c (1 + a))`, `G0 = a Gdiv - Gp`.
+In the simulation (R0 +2.5 %, dividers -2.5 %, channel gains up to 1.2 % off), a 30 kOhm fault
+reads 2.4 % high uncalibrated and exactly after calibration. Real-board accuracy is set by the
+meter readings you type in.
+
+Equipment:
+- Current-limited DC supply, 100..400 V (a few mA is plenty), output floating.
+- The Fluke for the supply voltage and the Rcal value.
+- Rcal: about 1 MOhm, rated >= 1 kV (e.g. Vishay VR37 1M), value measured with the Fluke.
+- USB-serial adapter (3.3 V) on the stacking header pins 9 (TX into the IMD), 10 (RX), GND,
+  or the economizer once it forwards the UART. 115200 baud, one command per line.
+- 12 V to the board (stacking header or J2).
+
+**HV safety:** the supply is lethal-current-capable at 400 V even when limited; work with one hand,
+connect with the supply off, and discharge (both R0 switches are open between steps; the 4.8 MOhm
+dividers bleed the board, not the supply's own capacitors).
+
+Steps:
+1. **GAIN.** HV supply on J3 (HV+ pin 1, HV- pin 3). Jumper J4 E **and** KE to HV+. Nothing else.
+   Turn on, read HV+ to HV- with the Fluke at J3, then send `CAL GAIN 250.3` (your reading).
+   About 4 s. It refuses if any channel is more than 10 % off (typing error, E/KE not jumpered).
+2. **BRIDGE.** Supply off, remove the jumper. Join E and KE together and connect Rcal from HV+ to that
+   node. E/KE must not touch anything else, in particular not the supply's earth or HV-. Supply on,
+   send `CAL BRIDGE 1.002M` (your measured Rcal). Takes 10..30 s (one speed-start cycle, then four
+   settled P/N cycles). It refuses if R0 or Rdiv come out more than 10 % off nominal (leakage on the
+   bench, wrong value typed).
+3. `CAL` shows the result (`steps=GB`, gain corrections in ppm, R0 and Rdiv in ohms).
+   Check: put a second known resistor (e.g. 200k) from HV+ to E/KE: the status line's `Rp=` should
+   read it within ~1 %, and `Rn=` should read open (`inf`) or very high.
+
+`CAL ABORT` stops a running step; `CAL CLEAR` goes back to nominal values. During a step the board is
+not monitoring: MHS shows device error (40 Hz), OKHS / IMD_OK stay low, INHIBIT and the contactor
+inputs are ignored.
 
 ## Open / verify
 
