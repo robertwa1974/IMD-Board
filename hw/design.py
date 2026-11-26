@@ -56,7 +56,7 @@ def hv_string(top, bottom, value, n, block, prefix, note, dnp=False):
     nodes = [top] + [f"{prefix}_{i}" for i in range(1, n)] + [bottom]
     for i in range(n):
         R(value, nodes[i], nodes[i + 1], block, FP_R1206, note=note if i == 0 else "", dnp=dnp,
-          mpn="1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV")
+          mpn="1206 thick film 1 %, 200 V rated (112 V per part at 450 V)")
 
 
 # =========================================================================== LV side
@@ -81,9 +81,9 @@ part("J", "Connector_Generic:Conn_01x04", "Micro-Fit 1x4",
 
 # --------------------------------------------------------------------------- LV power
 B = "LV power input"
-part("D", "Diode:SS14", "SS14", FP_SMA, {1: "VLV", 2: "12V_IN"}, B, mpn="SS14",
+part("D", "Diode:SS14", "SS14", FP_SMA, {1: "VLV", 2: "12V_IN"}, B, mpn="SS14", lcsc="C2480",
      note="Reverse polarity (stand-alone use); ~0.1 A load")
-part("D", "Device:D_Zener", "SMAJ24A", FP_SMA, {1: "VLV", 2: "GND"}, B, mpn="SMAJ24A (unidirectional TVS)",
+part("D", "Device:D_Zener", "SMAJ24A", FP_SMA, {1: "VLV", 2: "GND"}, B, mpn="SMAJ24A (unidirectional TVS)", lcsc="C3001960",
      note="Load-dump clamp for stand-alone use (economizer already clamps when stacked)")
 C("10u 50V", "VLV", "GND", B, FP_C1206)
 C("100n 50V", "VLV", "GND", B)
@@ -99,12 +99,12 @@ R("100k", "VLV", "BUCK_SHDN", B, note="Datasheet: 100k from supply when SHDN may
 C("10n", "BUCK_SHDN", "GND", B, note="Soft start")
 C("2.2u 50V", "VLV", "GND", B, FP_C1206, note="CIN, at VIN/GND pins")
 C("150n", "BUCK_CB", "BUCK_SW", B, note="CBOOT >= 0.15 uF")
-part("D", "Diode:SS16", "SS16", FP_SMA, {1: "BUCK_SW", 2: "GND"}, B, mpn="SS16",
+part("D", "Diode:SS16", "SS16", FP_SMA, {1: "BUCK_SW", 2: "GND"}, B, mpn="SS16", lcsc="C2481",
      note="Catch diode, 60 V 1 A (datasheet example)")
 part("L", "Device:L", "15u", "Inductor_SMD:L_Bourns_SRN6045TA", {1: "BUCK_SW", 2: "5V_LV"}, B,
      mpn="Bourns SRN6045-150M", lcsc="C3224592", note="1.9 A rated (datasheet asks >= 1.1 A); same 6x6 land as SRN6045TA")
-R("5.62k", "5V_LV", "BUCK_FB", B, note="Vout = 0.765 V x (1 + 5.62k/1.02k) = 4.98 V")
-R("1.02k", "BUCK_FB", "GND", B)
+R("5.6k", "5V_LV", "BUCK_FB", B, note="Vout = 0.765 V x (1 + 5.6k/1k) = 5.05 V (both JLCPCB Basic)")
+R("1k", "BUCK_FB", "GND", B)
 C("22u 16V", "5V_LV", "GND", B, FP_C1206)
 C("22u 16V", "5V_LV", "GND", B, FP_C1206)
 part("#FLG", "power:PWR_FLAG", "PWR_FLAG", "", {1: "5V_LV"}, B, ref="#FLG05")
@@ -169,7 +169,7 @@ for sig in ("MHS", "OKHS"):
     R("22k", f"{sig}_PG", f"{sig}_PD", B)
     part("Q", "Transistor_FET:BSS84", "BSS84", FP_SOT23, {1: f"{sig}_PG", 2: "VLV", 3: f"{sig}_HS"}, B,
          mpn="LBSS84LT1G", lcsc="C8492", note="High-side switch, -50 V")
-    R("470", f"{sig}_HS", f"IMD_{sig}", B, FP_R2512,
+    R("470 1W", f"{sig}_HS", f"IMD_{sig}", B, FP_R2512,
       note="1 W: survives a dead short (0.55 W at 16 V). High = ~9.6 V into the IR155 2.2k load")
     part("D", "Device:D_TVS", "SMAJ24CA", FP_SMA, {1: f"IMD_{sig}", 2: "GND"}, B, mpn="SMAJ24CA (bidirectional)",
          lcsc="C113963", note="Harness ESD/transients, both polarities")
@@ -233,7 +233,8 @@ for name, top, node, dnp, note in (
         ("VE", "E", "AIN_VE", False, "Chassis (E) to HV-"),
         ("VKE", "KE", "AIN_VKE", False, "Chassis (KE) to HV-: E/KE mismatch = earth-connection fault")):
     hv_string(top, f"{name}_DIV", "1.2M", 4, B, name, note=note, dnp=dnp)
-    R("18k 0.1%", f"{name}_DIV", "GND_HV", B, mpn="0.1 % 25 ppm thin film", dnp=dnp)
+    R("18k", f"{name}_DIV", "GND_HV", B, dnp=dnp,
+      note="1 %: channel gain matching comes from a one-time firmware calibration, not part tolerance")
     R("1k", f"{name}_DIV", node, B, dnp=dnp)
     C("100n", node, "GND_HV", B, note="Anti-alias, ~85 Hz with the divider", dnp=dnp)
 
@@ -253,16 +254,47 @@ B = "HV connectors"
 # Micro-Fit 3.0 is rated 600 V. Middle position unloaded (6 mm between HV+ and HV-);
 # its copper is removed on the PCB.
 part("J", "Connector_Generic:Conn_01x03", "HV tap", "Connector_Molex:Molex_Micro-Fit_3.0_43650-0300_1x03_P3.00mm_Horizontal",
-     {1: "HV_P", 2: None, 3: "GND_HV"}, B, ref="J3", mpn="Molex 43650-0300",
+     {1: "HV_P", 2: None, 3: "GND_HV"}, B, ref="J3", mpn="Molex 43650-0300", lcsc="C503478",
      note="1 = HV+ (pack side, after pack fuse), 3 = HV-. Inline HV fuses in the harness")
 part("J", "Connector_Generic:Conn_01x02", "Chassis E/KE", "Connector_Molex:Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal",
-     {1: "E", 2: "KE"}, B, ref="J4", mpn="Molex 43650-0200",
+     {1: "E", 2: "KE"}, B, ref="J4", mpn="Molex 43650-0200 (not at LCSC: Digi-Key/Mouser)",
      note="Two SEPARATE wires to chassis (different studs if possible). Never link E and KE on the board")
 
 # --------------------------------------------------------------------------- mechanical
 # H1-H4 on the economizer's 69 x 59 grid; H5/H6 support the 30 mm overhang on the HV side.
 for i in range(6):
     part("H", "Mechanical:MountingHole", "M3", "MountingHole:MountingHole_3.2mm_M3", {}, "Mechanical")
+
+
+# --------------------------------------------------------------------------- JLCPCB part numbers
+# Generic parts by (value, footprint). Checked on jlcpcb.com / lcsc.com 2026-11-26; "B" = Basic library.
+LCSC_GENERIC = {
+    ("100n", FP_C0603): "C14663",        # B  Yageo X7R 50 V
+    ("100n 50V", FP_C0603): "C14663",    # B
+    ("1u", FP_C0603): "C15849",          # B  Samsung X5R 50 V
+    ("10n", FP_C0603): "C57112",         # B  X7R 50 V
+    ("150n", FP_C0603): "C282674",       #    CCTC X7R 50 V
+    ("4.7u", FP_C0603): "C19666",        # B  X5R 16 V
+    ("10u 16V", FP_C0805): "C15850",     # B  X5R 25 V
+    ("22u 16V", FP_C1206): "C12891",     #    Samsung X5R 25 V
+    ("10u 50V", FP_C1206): "C13585",     #    Samsung X5R 50 V
+    ("2.2u 50V", FP_C1206): "C50254",    # B  Samsung X7R 50 V
+    ("100k", FP_R0603): "C25803",        # B
+    ("10k", FP_R0603): "C25804",         # B
+    ("1k", FP_R0603): "C21190",          # B
+    ("22k", FP_R0603): "C31850",         # B
+    ("100", FP_R0603): "C22775",         # B
+    ("18k", FP_R0603): "C25810",         # B
+    ("5.6k", FP_R0603): "C23189",        # B
+    ("1.2M", FP_R1206): "C22107",        #    Uni-Royal 1 % 200 V
+    ("120k", FP_R1206): "C17908",        #    Uni-Royal 1 % 200 V
+    ("470 1W", FP_R2512): "C351718",     #    RESI 1 % 1 W
+    ("green", FP_LED): "C72043",
+    ("yellow", FP_LED): "C72038",
+}
+for _p in parts:
+    if not _p["lcsc"]:
+        _p["lcsc"] = LCSC_GENERIC.get((_p["value"], _p["footprint"]), "")
 
 
 def nets():

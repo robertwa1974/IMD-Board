@@ -70,6 +70,9 @@ Each: 4 x 1.2 MOhm 1206 + 18 kOhm 0.1 % bottom + 1 k / 100 nF anti-alias.
 - Settling (handoff example, Y = 200 nF, Rp = Rn = 20 M, Rdiv = 2.4 M): tau ~ 80 ms per phase.
   **Measure the real Y-capacitance before choosing firmware timing.**
 - `1/Rn = x - 1/Rdiv` from the handoff with Rdiv = 2.409 M (both dividers).
+- **Calibration:** strings and 18k bottoms are 1 % parts, so the three channels match only to ~1 %.
+  Firmware needs a one-time gain calibration per channel (known resistor HV+ to chassis, and the
+  measured pack voltage) before the readings near the 100 ohm/V threshold are trusted. Not written yet.
   The Vbus divider is across the pack and does not enter the chassis equations.
 
 ### Chassis-connection (E/KE) monitoring
@@ -95,8 +98,8 @@ E carries the R0 switches; KE only has its own divider. Both should read the sam
   F suffix = outputs default LOW when the other side is dead, so a dead HV side gives MHS = no
   signal, OKHS = low, IMD_OK = low. 1500 Vrms / 2121 VDC working.
 - **ISO7721** (U5, non-F so the UART idles high): channel A LV->HV (RX), channel B HV->LV (TX).
-- **LMR14206** buck 12 V -> 5 V, values from datasheet Fig. 10: 15 uH, 0.15 uF CBOOT, 5.62 k / 1.02 k
-  (4.98 V), SS16 catch diode. SHDN via 100 k from VLV (datasheet advice when it may exceed 42 V).
+- **LMR14206** buck 12 V -> 5 V, values from datasheet Fig. 10: 15 uH, 0.15 uF CBOOT, SS16 catch diode;
+  feedback 5.6 k / 1 k (5.05 V, JLCPCB Basic parts instead of the datasheet's 5.62 k / 1.02 k). SHDN via 100 k from VLV (datasheet advice when it may exceed 42 V).
 - LV 3.3 V: AP2112K. HV 3.3 V: LP5907 (low noise for MCU + ADC).
 
 Power budget (estimate, 12 V input):
@@ -181,10 +184,14 @@ because its middle pin's copper is removed).
 - Mount in the HV contactor box; conformal-coat the HV side after testing (keep J3/J4/J5 clear).
 
 Before ordering:
-1. LCSC part numbers for the generic passives, SS14/SS16/SMAJ24A, and an elevated 2x6 header
-   (BOM rows without one are not assembled).
+1. Every assembled part has an LCSC number (table `LCSC_GENERIC` in `design.py`, checked 2026-11-26).
+   Hand-soldered: J1 (elevated 2x6 male header, length to suit 15 mm standoffs + the 8.5 mm socket),
+   J5 (1x5 header), J4 (Molex 43650-0200: not at LCSC, buy from Digi-Key/Mouser). J2/J3 are at LCSC
+   but through-hole, so they are hand-soldered too (or add them to JLCPCB's THT assembly).
 2. JLCPCB rotation check on the CPL preview (SOIC/TSSOP/TSOT orientations).
-3. Look at the 3D renders in `hw/fab/` and the routing in KiCad once yourself.
+3. Look at the 3D renders in `hw/fab/` and the routing in KiCad once yourself. Known compromise: one
+   low-voltage divider trace (VKE_DIV) runs on top under the body of U9, 2.6 mm from its HV pad.
+4. Check stock on the day: UCC12050 (C504571) had only ~40-120 pieces.
 
 ## Firmware (first pass)
 

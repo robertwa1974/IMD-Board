@@ -7883,6 +7883,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C2480"
+			(at 135.89 22.86 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Notes" "Reverse polarity (stand-alone use); ~0.1 A load"
 			(at 135.89 22.86 0)
 			(hide yes)
@@ -8024,6 +8033,15 @@
 			)
 		)
 		(property "MPN" "SMAJ24A (unidirectional TVS)"
+			(at 165.1 22.86 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C3001960"
 			(at 165.1 22.86 0)
 			(hide yes)
 			(effects
@@ -8174,6 +8192,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C13585"
+			(at 181.61 34.29 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "a45bb43d-6809-5254-9c4d-79dddb0da171")
 		)
@@ -8299,6 +8326,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 194.31 34.29 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C14663"
 			(at 194.31 34.29 0)
 			(hide yes)
 			(effects
@@ -9054,6 +9090,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C25803"
+			(at 322.58 34.29 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Notes" "Datasheet: 100k from supply when SHDN may see >42 V"
 			(at 322.58 34.29 0)
 			(hide yes)
@@ -9188,6 +9233,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 335.28 40.64 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C57112"
 			(at 335.28 40.64 0)
 			(hide yes)
 			(effects
@@ -9338,6 +9392,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C50254"
+			(at 347.98 34.29 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Notes" "CIN, at VIN/GND pins"
 			(at 347.98 34.29 0)
 			(hide yes)
@@ -9472,6 +9535,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 360.68 38.1 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C282674"
 			(at 360.68 38.1 0)
 			(hide yes)
 			(effects
@@ -9621,6 +9693,15 @@
 			)
 		)
 		(property "MPN" "SS16"
+			(at 283.21 60.96 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C2481"
 			(at 283.21 60.96 0)
 			(hide yes)
 			(effects
@@ -9892,7 +9973,7 @@
 				)
 			)
 		)
-		(property "Value" "5.62k"
+		(property "Value" "5.6k"
 			(at 311.15 73.66 90)
 			(effects
 				(font
@@ -9927,7 +10008,16 @@
 				)
 			)
 		)
-		(property "Notes" "Vout = 0.765 V x (1 + 5.62k/1.02k) = 4.98 V"
+		(property "LCSC" "C23189"
+			(at 311.15 73.66 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Notes" "Vout = 0.765 V x (1 + 5.6k/1k) = 5.05 V (both JLCPCB Basic)"
 			(at 311.15 73.66 0)
 			(hide yes)
 			(effects
@@ -10032,7 +10122,7 @@
 				)
 			)
 		)
-		(property "Value" "1.02k"
+		(property "Value" "1k"
 			(at 323.85 76.2 90)
 			(effects
 				(font
@@ -10059,6 +10149,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 323.85 76.2 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C21190"
 			(at 323.85 76.2 0)
 			(hide yes)
 			(effects
@@ -10200,6 +10299,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C12891"
+			(at 337.82 73.66 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "aaf93a6a-753b-50b3-bb3b-c14fa416e257")
 		)
@@ -10325,6 +10433,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 350.52 73.66 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C12891"
 			(at 350.52 73.66 0)
 			(hide yes)
 			(effects
@@ -10811,6 +10928,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C15849"
+			(at 449.58 36.83 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "ed853c56-b68c-5ec2-9d6e-f1da4fe3f439")
 		)
@@ -10936,6 +11062,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 462.28 38.1 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C15849"
 			(at 462.28 38.1 0)
 			(hide yes)
 			(effects
@@ -11075,6 +11210,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C21190"
+			(at 476.25 38.1 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "cc7f84dd-4400-5293-9416-2c9b76ee7a81")
 		)
@@ -11198,6 +11342,15 @@
 			)
 		)
 		(property "Description" "Light emitting diode"
+			(at 500.38 22.86 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C72043"
 			(at 500.38 22.86 0)
 			(hide yes)
 			(effects
@@ -11990,6 +12143,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C25804"
+			(at 73.66 123.19 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Notes" "EN high = on"
 			(at 73.66 123.19 0)
 			(hide yes)
@@ -12124,6 +12286,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 86.36 123.19 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C15850"
 			(at 86.36 123.19 0)
 			(hide yes)
 			(effects
@@ -12274,6 +12445,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C14663"
+			(at 99.06 123.19 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "ae2b4105-4cdb-593f-a6ea-d7ff1edb79be")
 		)
@@ -12399,6 +12579,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 111.76 125.73 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C15850"
 			(at 111.76 125.73 0)
 			(hide yes)
 			(effects
@@ -12541,6 +12730,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 125.73 125.73 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C14663"
 			(at 125.73 125.73 0)
 			(hide yes)
 			(effects
@@ -13454,6 +13652,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C14663"
+			(at 215.9 124.46 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "12854741-7a14-5f39-bafe-e5bb731c2d1a")
 		)
@@ -13579,6 +13786,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 228.6 124.46 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C14663"
 			(at 228.6 124.46 0)
 			(hide yes)
 			(effects
@@ -14089,6 +14305,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C14663"
+			(at 217.17 185.42 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "3927c80a-106b-535a-9e73-cb7386e828fe")
 		)
@@ -14214,6 +14439,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 229.87 185.42 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C14663"
 			(at 229.87 185.42 0)
 			(hide yes)
 			(effects
@@ -14377,6 +14611,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C22775"
+			(at 302.26 128.27 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Notes" "Economizer adds 1k + ESD and a 100k pull-down"
 			(at 302.26 128.27 0)
 			(hide yes)
@@ -14517,6 +14760,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C22775"
+			(at 314.96 135.89 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "e3e3c073-4d86-51f8-b4cc-fa9bda47be55")
 		)
@@ -14640,6 +14892,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 327.66 130.81 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25803"
 			(at 327.66 130.81 0)
 			(hide yes)
 			(effects
@@ -14788,6 +15049,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C25803"
+			(at 341.63 130.81 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "9566a576-ff9c-50a9-b255-631d0aa8ea48")
 		)
@@ -14911,6 +15181,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 354.33 129.54 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25803"
 			(at 354.33 129.54 0)
 			(hide yes)
 			(effects
@@ -15051,6 +15330,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 367.03 129.54 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25803"
 			(at 367.03 129.54 0)
 			(hide yes)
 			(effects
@@ -15412,6 +15700,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C25803"
+			(at 474.98 125.73 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Notes" "Off while LV logic is unpowered"
 			(at 474.98 125.73 0)
 			(hide yes)
@@ -15552,6 +15849,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C25804"
+			(at 487.68 120.65 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Notes" "Vgs = -VLV x 10/32: -3.8 V at 12 V, -12 V at the 38 V TVS clamp"
 			(at 487.68 120.65 0)
 			(hide yes)
@@ -15684,6 +15990,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 500.38 124.46 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C31850"
 			(at 500.38 124.46 0)
 			(hide yes)
 			(effects
@@ -15986,7 +16301,7 @@
 				)
 			)
 		)
-		(property "Value" "470"
+		(property "Value" "470 1W"
 			(at 542.29 124.46 90)
 			(effects
 				(font
@@ -16013,6 +16328,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 542.29 124.46 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C351718"
 			(at 542.29 124.46 0)
 			(hide yes)
 			(effects
@@ -16532,6 +16856,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C25803"
+			(at 46.99 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Notes" "Off while LV logic is unpowered"
 			(at 46.99 236.22 0)
 			(hide yes)
@@ -16672,6 +17005,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C25804"
+			(at 59.69 231.14 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Notes" "Vgs = -VLV x 10/32: -3.8 V at 12 V, -12 V at the 38 V TVS clamp"
 			(at 59.69 231.14 0)
 			(hide yes)
@@ -16804,6 +17146,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 72.39 234.95 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C31850"
 			(at 72.39 234.95 0)
 			(hide yes)
 			(effects
@@ -17106,7 +17457,7 @@
 				)
 			)
 		)
-		(property "Value" "470"
+		(property "Value" "470 1W"
 			(at 115.57 234.95 90)
 			(effects
 				(font
@@ -17133,6 +17484,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 115.57 234.95 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C351718"
 			(at 115.57 234.95 0)
 			(hide yes)
 			(effects
@@ -17696,6 +18056,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C15849"
+			(at 200.66 234.95 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "3fabe5c5-079c-5322-8eae-f046ec1f9bd3")
 		)
@@ -17829,6 +18198,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C15849"
+			(at 213.36 234.95 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "0a354eac-474f-5b55-b8ae-169d31032c62")
 		)
@@ -17952,6 +18330,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 227.33 234.95 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25804"
 			(at 227.33 234.95 0)
 			(hide yes)
 			(effects
@@ -18100,6 +18487,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C25804"
+			(at 240.03 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "4add31a7-65bf-5f3d-b819-d4907c63a453")
 		)
@@ -18225,6 +18621,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 252.73 236.22 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C14663"
 			(at 252.73 236.22 0)
 			(hide yes)
 			(effects
@@ -19313,6 +19718,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C14663"
+			(at 370.84 234.95 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "333c4999-1d02-5f5f-b2dc-d222e9df4a7b")
 		)
@@ -19438,6 +19852,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 383.54 234.95 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C19666"
 			(at 383.54 234.95 0)
 			(hide yes)
 			(effects
@@ -19579,6 +20002,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C14663"
+			(at 396.24 234.95 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "5269f762-09c4-5be0-b863-3c32d7e24e8a")
 		)
@@ -19710,6 +20142,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C21190"
+			(at 410.21 234.95 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "5d84ae6f-b242-52fa-88c0-cf9aaa0e9c16")
 		)
@@ -19833,6 +20274,15 @@
 			)
 		)
 		(property "Description" "Light emitting diode"
+			(at 316.23 300.99 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C72038"
 			(at 316.23 300.99 0)
 			(hide yes)
 			(effects
@@ -20250,7 +20700,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 444.5 232.41 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17908"
 			(at 444.5 232.41 0)
 			(hide yes)
 			(effects
@@ -20399,7 +20858,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 458.47 233.68 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17908"
 			(at 458.47 233.68 0)
 			(hide yes)
 			(effects
@@ -20539,7 +21007,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 471.17 233.68 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17908"
 			(at 471.17 233.68 0)
 			(hide yes)
 			(effects
@@ -20679,7 +21156,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 483.87 233.68 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17908"
 			(at 483.87 233.68 0)
 			(hide yes)
 			(effects
@@ -21262,6 +21748,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C14663"
+			(at 548.64 234.95 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "5c82c389-95f4-5e2f-a40c-d7de36ea8260")
 		)
@@ -21385,6 +21880,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 562.61 234.95 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25803"
 			(at 562.61 234.95 0)
 			(hide yes)
 			(effects
@@ -21533,7 +22037,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 444.5 270.51 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17908"
 			(at 444.5 270.51 0)
 			(hide yes)
 			(effects
@@ -21682,7 +22195,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 458.47 269.24 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17908"
 			(at 458.47 269.24 0)
 			(hide yes)
 			(effects
@@ -21822,7 +22344,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 471.17 269.24 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17908"
 			(at 471.17 269.24 0)
 			(hide yes)
 			(effects
@@ -21962,7 +22493,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 483.87 269.24 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C17908"
 			(at 483.87 269.24 0)
 			(hide yes)
 			(effects
@@ -22545,6 +23085,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C14663"
+			(at 548.64 271.78 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "5ffc9566-40a0-50df-8979-2898a67666a6")
 		)
@@ -22668,6 +23217,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 562.61 270.51 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25803"
 			(at 562.61 270.51 0)
 			(hide yes)
 			(effects
@@ -22840,7 +23398,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 16.51 342.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C22107"
 			(at 16.51 342.9 0)
 			(hide yes)
 			(effects
@@ -22989,7 +23556,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 29.21 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C22107"
 			(at 29.21 345.44 0)
 			(hide yes)
 			(effects
@@ -23129,7 +23705,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 41.91 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C22107"
 			(at 41.91 345.44 0)
 			(hide yes)
 			(effects
@@ -23269,7 +23854,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 54.61 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C22107"
 			(at 54.61 345.44 0)
 			(hide yes)
 			(effects
@@ -23374,7 +23968,7 @@
 				)
 			)
 		)
-		(property "Value" "18k 0.1%"
+		(property "Value" "18k"
 			(at 68.58 347.98 90)
 			(effects
 				(font
@@ -23409,7 +24003,16 @@
 				)
 			)
 		)
-		(property "MPN" "0.1 % 25 ppm thin film"
+		(property "LCSC" "C25810"
+			(at 68.58 347.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Notes" "1 %: channel gain matching comes from a one-time firmware calibration, not part tolerance"
 			(at 68.58 347.98 0)
 			(hide yes)
 			(effects
@@ -23549,6 +24152,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C21190"
+			(at 81.28 347.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "c2dd1ded-9c7e-5b1d-9307-2098f4de274f")
 		)
@@ -23674,6 +24286,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 93.98 347.98 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C14663"
 			(at 93.98 347.98 0)
 			(hide yes)
 			(effects
@@ -23822,7 +24443,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 106.68 340.36 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C22107"
 			(at 106.68 340.36 0)
 			(hide yes)
 			(effects
@@ -23971,7 +24601,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 119.38 342.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C22107"
 			(at 119.38 342.9 0)
 			(hide yes)
 			(effects
@@ -24111,7 +24750,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 133.35 342.9 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C22107"
 			(at 133.35 342.9 0)
 			(hide yes)
 			(effects
@@ -24251,7 +24899,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 16.51 383.54 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C22107"
 			(at 16.51 383.54 0)
 			(hide yes)
 			(effects
@@ -24356,7 +25013,7 @@
 				)
 			)
 		)
-		(property "Value" "18k 0.1%"
+		(property "Value" "18k"
 			(at 29.21 384.81 90)
 			(effects
 				(font
@@ -24391,7 +25048,16 @@
 				)
 			)
 		)
-		(property "MPN" "0.1 % 25 ppm thin film"
+		(property "LCSC" "C25810"
+			(at 29.21 384.81 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Notes" "1 %: channel gain matching comes from a one-time firmware calibration, not part tolerance"
 			(at 29.21 384.81 0)
 			(hide yes)
 			(effects
@@ -24531,6 +25197,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C21190"
+			(at 41.91 384.81 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "825039cf-468b-5824-a5a2-777e4fe4befc")
 		)
@@ -24656,6 +25331,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 54.61 384.81 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C14663"
 			(at 54.61 384.81 0)
 			(hide yes)
 			(effects
@@ -24804,7 +25488,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 68.58 381 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C22107"
 			(at 68.58 381 0)
 			(hide yes)
 			(effects
@@ -24953,7 +25646,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 81.28 383.54 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C22107"
 			(at 81.28 383.54 0)
 			(hide yes)
 			(effects
@@ -25093,7 +25795,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 93.98 383.54 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C22107"
 			(at 93.98 383.54 0)
 			(hide yes)
 			(effects
@@ -25233,7 +25944,16 @@
 				)
 			)
 		)
-		(property "MPN" "1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV"
+		(property "MPN" "1206 thick film 1 %, 200 V rated (112 V per part at 450 V)"
+			(at 106.68 383.54 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C22107"
 			(at 106.68 383.54 0)
 			(hide yes)
 			(effects
@@ -25338,7 +26058,7 @@
 				)
 			)
 		)
-		(property "Value" "18k 0.1%"
+		(property "Value" "18k"
 			(at 119.38 386.08 90)
 			(effects
 				(font
@@ -25373,7 +26093,16 @@
 				)
 			)
 		)
-		(property "MPN" "0.1 % 25 ppm thin film"
+		(property "LCSC" "C25810"
+			(at 119.38 386.08 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Notes" "1 %: channel gain matching comes from a one-time firmware calibration, not part tolerance"
 			(at 119.38 386.08 0)
 			(hide yes)
 			(effects
@@ -25513,6 +26242,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C21190"
+			(at 133.35 386.08 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "28363960-df92-5ff6-a8cc-e6fa24bfeccb")
 		)
@@ -25638,6 +26376,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 16.51 422.91 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C14663"
 			(at 16.51 422.91 0)
 			(hide yes)
 			(effects
@@ -26379,6 +27126,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C14663"
+			(at 224.79 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Notes" "AVDD"
 			(at 224.79 345.44 0)
 			(hide yes)
@@ -26513,6 +27269,15 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
+			(at 237.49 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C14663"
 			(at 237.49 345.44 0)
 			(hide yes)
 			(effects
@@ -26663,6 +27428,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C15849"
+			(at 250.19 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(pin "1"
 			(uuid "393be1a6-c836-5aa4-9a82-b3ce8ab68ec8")
 		)
@@ -26786,6 +27560,15 @@
 			)
 		)
 		(property "Description" "Resistor"
+			(at 262.89 345.44 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "LCSC" "C25803"
 			(at 262.89 345.44 0)
 			(hide yes)
 			(effects
@@ -26967,6 +27750,15 @@
 				)
 			)
 		)
+		(property "LCSC" "C503478"
+			(at 317.5 334.01 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
 		(property "Notes" "1 = HV+ (pack side, after pack fuse), 3 = HV-. Inline HV fuses in the harness"
 			(at 317.5 334.01 0)
 			(hide yes)
@@ -27114,7 +27906,7 @@
 				)
 			)
 		)
-		(property "MPN" "Molex 43650-0200"
+		(property "MPN" "Molex 43650-0200 (not at LCSC: Digi-Key/Mouser)"
 			(at 342.9 331.47 0)
 			(hide yes)
 			(effects
@@ -27474,6 +28266,128 @@
 			(project "imd"
 				(path "/f9df0c7c-5d58-5b5a-aab9-54ddea8497ba"
 					(reference "H4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 415.29 331.47 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(uuid "0884529a-7503-5de8-bb69-ae8d2b32be6b")
+		(property "Reference" "H5"
+			(at 415.29 326.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "M3"
+			(at 415.29 328.295 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
+			(at 415.29 331.47 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 415.29 331.47 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Mounting Hole without connection"
+			(at 415.29 331.47 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "imd"
+				(path "/f9df0c7c-5d58-5b5a-aab9-54ddea8497ba"
+					(reference "H5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Mechanical:MountingHole")
+		(at 429.26 331.47 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom no)
+		(on_board yes)
+		(dnp no)
+		(uuid "9ed6e341-86ef-59a0-8f32-bd2bd371127c")
+		(property "Reference" "H6"
+			(at 429.26 326.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "M3"
+			(at 429.26 328.295 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
+			(at 429.26 331.47 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Datasheet" ""
+			(at 429.26 331.47 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "Mounting Hole without connection"
+			(at 429.26 331.47 0)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(instances
+			(project "imd"
+				(path "/f9df0c7c-5d58-5b5a-aab9-54ddea8497ba"
+					(reference "H6")
 					(unit 1)
 				)
 			)
