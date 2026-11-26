@@ -13,8 +13,8 @@
 namespace imd {
 
 struct Config {
-  float r0 = 500e3f;              // bridge resistor (5 x 100k)
-  float rdiv = 2.509e6f;          // E || KE sense dividers, each 5 x 1M + 18k
+  float r0 = 480e3f;              // bridge resistor (4 x 120k)
+  float rdiv = 2.409e6f;          // E || KE sense dividers, each 4 x 1.2M + 18k
   float responseOhmPerV = 100.0f; // OKHS drops below this x Vbus (FMVSS 305 / ECE R100 DC limit)
   float hysteresis = 0.25f;       // OKHS returns at threshold x (1 + hysteresis)
   uint8_t tripCycles = 2;         // consecutive low results before OKHS drops (spike rejection)

@@ -1,0 +1,45 @@
+Comment,Designator,Footprint,LCSC Part #,MPN,Qty,Notes
+Stack header 2x6,J1,PinHeader_2x06_P2.54mm_Vertical,,"2x6 elevated male header, 2.54 mm (length to suit 15 mm standoffs + 8.5 mm socket)",1,HAND-SOLDER (not in CPL). Footprint on top side at the same XY/rotation as economizer J4; header inserted from below
+Micro-Fit 1x4,J2,Molex_Micro-Fit_3.0_43650-0400_1x04_P3.00mm_Horizontal,C277684,Molex 43650-0400,1,"HAND-SOLDER (not in CPL). Only when NOT stacked: permanent 12 V, GND, IR155-style MHS/OKHS to VCU"
+SS14,D1,D_SMA,,SS14,1,Reverse polarity (stand-alone use); ~0.1 A load
+SMAJ24A,D2,D_SMA,,SMAJ24A (unidirectional TVS),1,Load-dump clamp for stand-alone use (economizer already clamps when stacked)
+10u 50V,C1,C_1206_3216Metric,,,1,
+100n 50V,C2,C_0603_1608Metric,,,1,
+LMR14206XMK,U1,TSOT-23-6,C2071127,LMR14206XMKE/NOPB,1,"4.5-42 V in, 1.25 MHz, 0.6 A. Values from datasheet Fig. 10 (5 V out)"
+100k,"R1,R8,R9,R10,R11,R12,R16,R27,R32,R51",R_0603_1608Metric,,,10,R1: Datasheet: 100k from supply when SHDN may see >42 V; R8: Stand-alone: open = not closed; R10: Stand-alone: open = measure; R11: UART idle high when no economizer; R12: Off while LV logic is unpowered; R16: Off while LV logic is unpowered; R27: Switch off during MCU reset; R32: Switch off during MCU reset; R51: ADC deselected during MCU reset
+10n,C3,C_0603_1608Metric,,,1,Soft start
+2.2u 50V,C4,C_1206_3216Metric,,,1,"CIN, at VIN/GND pins"
+150n,C5,C_0603_1608Metric,,,1,CBOOT >= 0.15 uF
+SS16,D3,D_SMA,,SS16,1,"Catch diode, 60 V 1 A (datasheet example)"
+15u,L1,L_Bourns_SRN6045TA,C3224592,Bourns SRN6045-150M,1,1.9 A rated (datasheet asks >= 1.1 A); same 6x6 land as SRN6045TA
+5.62k,R2,R_0603_1608Metric,,,1,Vout = 0.765 V x (1 + 5.62k/1.02k) = 4.98 V
+1.02k,R3,R_0603_1608Metric,,,1,
+22u 16V,"C6,C7",C_1206_3216Metric,,,2,
+AP2112K-3.3,U2,SOT-23-5,C51118,AP2112K-3.3TRG1,1,
+1u,"C8,C9,C18,C19,C31",C_0603_1608Metric,,,5,
+1k,"R4,R22,R38,R44,R50",R_0603_1608Metric,,,5,
+green,D4,LED_0603_1608Metric,,,1,LV power
+UCC12050DVER,U3,SOIC-16W_7.5x10.3mm_P1.27mm,C504571,UCC12050DVER (UCC12051QDVERQ1 automotive),1,"SEL=VISO -> 5.0 V. SYNC=GNDP (internal osc). NC 6-8 to GNDP, NC 10-12 to GNDS per datasheet"
+10k,"R5,R13,R17,R20,R21",R_0603_1608Metric,,,5,"R5: EN high = on; R13: Vgs = -VLV x 10/32: -3.8 V at 12 V, -12 V at the 38 V TVS clamp; R17: Vgs = -VLV x 10/32: -3.8 V at 12 V, -12 V at the 38 V TVS clamp; R20: VISO/2 to MCU ADC: supply self-test"
+10u 16V,"C10,C12",C_0805_2012Metric,,,2,C10: At VINP pin 3 / GNDP pin 2; C12: At VISO pin 14 / GNDS pin 15
+100n,"C11,C13,C14,C15,C16,C17,C20,C21,C23,C24,C25,C26,C27,C28,C29,C30",C_0603_1608Metric,,,16,"C26: Anti-alias, ~85 Hz with the divider; C27: Anti-alias, ~85 Hz with the divider; C28: Anti-alias, ~85 Hz with the divider; C29: AVDD; C30: DVDD"
+ISO7763FDWR,U4,SOIC-16W_7.5x10.3mm_P1.27mm,C2871771,ISO7763FDWR,1,"F = default-low outputs. 1500 Vrms / 2121 VDC working, 8 mm creepage"
+ISO7721DWVR,U5,SOIC-8_7.5x5.85mm_P1.27mm,C2864013,ISO7721DWVR,1,Non-F: idle-high UART. 8.5 mm creepage (DWV)
+100,"R6,R7",R_0603_1608Metric,,,2,R6: Economizer adds 1k + ESD and a 100k pull-down
+2N7002,"Q1,Q3",SOT-23,C8545,2N7002,2,
+22k,"R14,R18",R_0603_1608Metric,,,2,
+BSS84,"Q2,Q4",SOT-23,C8492,LBSS84LT1G,2,"High-side switch, -50 V"
+470,"R15,R19",R_2512_6332Metric,,,2,1 W: survives a dead short (0.55 W at 16 V). High = ~9.6 V into the IR155 2.2k load
+SMAJ24CA,"D5,D6",D_SMA,C113963,SMAJ24CA (bidirectional),2,"Harness ESD/transients, both polarities"
+LP5907MFX-3.3,U6,SOT-23-5,C80670,LP5907MFX-3.3/NOPB,1,"Low-noise LDO: MCU, ADC and the isolator HV sides"
+STM32G031K8T6,U7,LQFP-32_7x7mm_P0.8mm,C432203,STM32G031K8T6,1,Same MCU as the economizer
+4.7u,C22,C_0603_1608Metric,,,1,
+yellow,D7,LED_0603_1608Metric,,,1,HV-side heartbeat
+SWD (HV side),J5,PinHeader_1x05_P2.54mm_Vertical,,,1,HAND-SOLDER (not in CPL). HV-REFERENCED. Program only with the HV connector unplugged
+120k,"R23,R24,R25,R26,R28,R29,R30,R31",R_1206_3216Metric,,"1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV",8,"R23: R0 = 480k, HV+ to chassis; R28: R0 = 480k, chassis to HV-"
+TPSI2140QDWQRQ1,"U8,U9",TI_DWQ0011A_SOIC-11_HV,C19089118,TPSI2140QDWQRQ1,2,"1200 V, 130 ohm, 9 mA VDD when on. SM pin: thermal only, leave unconnected"
+1.2M,"R33,R34,R35,R36,R39,R40,R41,R42,R45,R46,R47,R48",R_1206_3216Metric,,"1206 HV-rated thick film (>=200 V/part), 1 %, e.g. Vishay CRHV / Yageo HV",12,R33: Pack voltage HV+ to HV-; R39: Chassis (E) to HV-; R45: Chassis (KE) to HV-: E/KE mismatch = earth-connection fault
+18k 0.1%,"R37,R43,R49",R_0603_1608Metric,,0.1 % 25 ppm thin film,3,
+ADS1220IPWR,U10,TSSOP-16_4.4x5mm_P0.65mm,C48263,ADS1220IPWR,1,"24-bit, internal 2.048 V ref, PGA bypassed, single-ended vs AVSS. CLK=DGND -> internal osc. REFP0/REFN0/AIN3 floating (SBAS501D 9.1.5)"
+HV tap,J3,Molex_Micro-Fit_3.0_43650-0300_1x03_P3.00mm_Horizontal,,Molex 43650-0300,1,"HAND-SOLDER (not in CPL). 1 = HV+ (pack side, after pack fuse), 3 = HV-. Inline HV fuses in the harness"
+Chassis E/KE,J4,Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal,,Molex 43650-0200,1,HAND-SOLDER (not in CPL). Two SEPARATE wires to chassis (different studs if possible). Never link E and KE on the board

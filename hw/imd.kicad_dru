@@ -1,0 +1,16 @@
+(version 1)
+# HV netclass = 2.5 mm to everything (IEC 60664-1, PD2, material group III, 500 V row).
+# Inside one resistor string neighbouring nodes differ by at most 1/4 of the pack voltage
+# (112 V at 450 V): 0.5 mm is enough there (PD2, 125 V row: 0.4 mm basic).
+(rule "HV+ strings" (constraint clearance (min 0.5mm))
+  (condition "(A.NetName == 'HV_P' || A.NetName == 'VBUS_*' || A.NetName == 'R0P_*') && (B.NetName == 'HV_P' || B.NetName == 'VBUS_*' || B.NetName == 'R0P_*')"))
+(rule "E strings" (constraint clearance (min 0.5mm))
+  (condition "(A.NetName == 'E' || A.NetName == 'VE_*' || A.NetName == 'R0N_*') && (B.NetName == 'E' || B.NetName == 'VE_*' || B.NetName == 'R0N_*')"))
+(rule "KE string" (constraint clearance (min 0.5mm))
+  (condition "(A.NetName == 'KE' || A.NetName == 'VKE_*') && (B.NetName == 'KE' || B.NetName == 'VKE_*')"))
+(rule "R0N bottom" (constraint clearance (min 0.5mm))
+  (condition "(A.NetName == 'R0N_3' && B.NetName == 'GND_HV') || (A.NetName == 'GND_HV' && B.NetName == 'R0N_3')"))
+# E and KE are the same chassis potential in operation (separate wires only to detect a break);
+# they sit on 3 mm connector pins. 1 mm functional spacing.
+(rule "E-KE" (constraint clearance (min 1.0mm))
+  (condition "(A.NetName == 'E' && B.NetName == 'KE') || (A.NetName == 'KE' && B.NetName == 'E')"))

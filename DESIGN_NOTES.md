@@ -1,8 +1,8 @@
-# IMD board: design notes (schematic rev A, first pass)
+# IMD board: design notes (rev A, first pass: schematic, PCB, firmware)
 
 Companion to `HANDOFF.md` (requirements) and `hw/design.py` (the netlist, single source of truth).
-Everything here is for a 96S pack (~400 V nominal, design to 450 V), with the 800 V option kept open
-where it is cheap. Values marked **verify** were not checked against a primary source.
+Everything here is for a 96S NMC pack (max 403 V), designed to the 450 V class. The 800 V option was
+dropped (2026-11-26). Values marked **verify** were not checked against a primary source.
 
 ## Workflow
 
@@ -45,31 +45,31 @@ primary side). All have >= 8 mm creepage across the body.
 ## Measurement front end
 
 ### Sense dividers
-Each: 5 x 1 MOhm 1206 + 18 kOhm 0.1 % bottom + 1 k / 100 nF anti-alias.
+Each: 4 x 1.2 MOhm 1206 + 18 kOhm 0.1 % bottom + 1 k / 100 nF anti-alias.
 
-- Full scale = 2.048 V x 5.018 M / 18 k = **571 V**. 400 V reads 1.435 V.
-- 90 V per 1206 at 450 V (160 V at 800 V); stay with parts rated >= 200 V each.
-- RC corner ~85 Hz (18 k || 5 M with 1 k + 100 nF). Inverter noise filtering is mostly digital.
-- No input clamps: a failed bottom resistor still leaves 5 MOhm in series (<= 90 uA into the ADC's
+- Full scale = 2.048 V x 4.818 M / 18 k = **548 V**. 400 V reads 1.49 V.
+- 112 V per 1206 at 450 V; use parts rated >= 200 V each. One shorted part still leaves >= 3.6 MOhm.
+- RC corner ~90 Hz (18 k || 4.8 M with 1 k + 100 nF). Inverter noise filtering is mostly digital.
+- No input clamps: a failed bottom resistor still leaves 4.8 MOhm in series (<= 94 uA into the ADC's
   ESD structure), so a clamp's leakage error (uA x 18 k = several mV) would cost more than it saves.
-- 800 V option: 18 k -> 12 k (FS 856 V), or 7 parts per string.
 
 | Channel | ADS1220 input | Measures |
 |---|---|---|
 | VBUS | AIN0 | HV+ to HV- (pack side) |
 | VE   | AIN1 | E (chassis wire 1) to HV- |
 | VKE  | AIN2 | KE (chassis wire 2) to HV- |
-| VBB  | AIN3 | Bus side of the HV+ contactor (DNP; weld detect later) |
+| -    | AIN3 | Unused, floating (the bus-side weld-detect divider was dropped to fit the board) |
 
 ### R0 bridge
-- R0P: HV+ -> 5 x 100 k -> TPSI2140 (U8) -> E.   R0N: E -> TPSI2140 (U9) -> 5 x 100 k -> HV-.
-- R0 = 500 k. With R0N on and both chassis dividers (5 M || 5 M = 2.5 M) the worst-case isolation the
-  IMD itself imposes is 500 k || 2.5 M = 417 k = **926 ohm/V at 450 V** (> 500 ohm/V rule).
-- R0 string worst case (chassis hard-shorted to one rail): 450^2 / 500 k = 0.41 W total,
-  81 mW per 1206. At 800 V that becomes 256 mW per part: use 10 parts or 2512s for that option.
-- Settling (handoff example, Y = 200 nF, Rp = Rn = 20 M, Rdiv = 2.5 M): tau ~ 80 ms per phase.
+- R0P: HV+ -> 4 x 120 k -> TPSI2140 (U8) -> E.   R0N: E -> TPSI2140 (U9) -> 4 x 120 k -> HV-.
+  (TPSI2140 S1/S2 are interchangeable: back-to-back MOSFETs.)
+- R0 = 480 k. With R0N on and both chassis dividers (4.818 M || 4.818 M = 2.409 M) the worst-case
+  isolation the IMD itself imposes is 480 k || 2.409 M = 400 k = **889 ohm/V at 450 V** (> 500 ohm/V).
+- R0 string worst case (chassis hard-shorted to one rail): 450^2 / 480 k = 0.42 W total,
+  105 mW per 1206 (rated 250 mW).
+- Settling (handoff example, Y = 200 nF, Rp = Rn = 20 M, Rdiv = 2.4 M): tau ~ 80 ms per phase.
   **Measure the real Y-capacitance before choosing firmware timing.**
-- With Rdiv = E || KE = 2.5 M: `1/Rn = x - 1/Rdiv` from the handoff, Rdiv = 2.5 M (both dividers).
+- `1/Rn = x - 1/Rdiv` from the handoff with Rdiv = 2.409 M (both dividers).
   The Vbus divider is across the pack and does not enter the chassis equations.
 
 ### Chassis-connection (E/KE) monitoring
@@ -140,27 +140,51 @@ Within the 1 W budget and the economizer's 0.2 A PTC.
 |---|---|---|
 | J1 | 2x6 elevated male header | Matches economizer J4 (table in HANDOFF.md section 6) |
 | J2 | Micro-Fit 3.0 1x4 | 12 V, GND, MHS, OKHS: stand-alone only (do not feed 12 V on both J1 and J2) |
-| J3 | Micro-Fit 3.0 1x5 (600 V rated) | 1 HV+ (pack side), 3 bus side (optional), 5 HV-. Pins 2/4 unloaded |
+| J3 | Micro-Fit 3.0 1x3 (600 V rated) | 1 HV+ (pack side, after the pack fuse), 3 HV-. Pin 2 unloaded, no copper |
 | J4 | Micro-Fit 3.0 1x2 | E, KE: two separate wires to chassis |
 | J5 | 1x5 2.54 mm | SWD (HV side) |
 
 HV tap leads get inline fuses in the harness (>= 1000 VDC rated, <= 1 A; **choose part**).
 
-## PCB rules to carry into layout
+## PCB (rev A, first pass)
 
-- HV domain <-> LV domain: **>= 8 mm creepage**, routed slot under U3/U4/U5/U8/U9 to match their
-  body creepage. Nothing of the HV domain on the bottom side (stacked over the economizer).
-- Inside the HV domain (HV+ / bus / E / KE vs GND_HV): IEC 60664-1, PD2, material group III,
-  500 V -> 2.5 mm; 1000 V -> 5.0 mm (**verify against the table**). Use >= 5 mm on HV+ nets to keep
-  the 800 V option.
-- J3: delete the copper of positions 2 and 4 (custom footprint) so HV+ / bus / HV- are 6 mm apart.
-- Resistor strings: lay them out in a straight line, with a slot between strings at different potentials.
-- J1 footprint on the top layer at the same XY and rotation as economizer J4; the header is
-  inserted from below. Mounting holes on the 69 x 59 mm grid; cut-out over economizer J1 latch.
-- TPSI2140: use the HV land pattern (already in `imd.pretty`); SM pin is thermal only: copper
-  pour, no net.
-- Guard ring around the ADS1220 inputs at GND_HV (MOhm nodes are leakage-sensitive: keep the
-  board clean, conformal coat after test).
+`python hw/gen_lib.py`, then with KiCad's python: `gen_pcb.py place` -> Freerouting -> `gen_pcb.py finish`,
+then `python hw/fab.py`. Freerouting 2.4.1 comes with Rob's KiCad plugin:
+
+```
+java -jar %USERPROFILE%/Documents/KiCad/10.0/3rdparty/plugins/app_freerouting_kicad-plugin/jar/freerouting-2.4.1.jar      -de imd.dsn -dr imd.rules -do imd.ses -mp 150 --gui.enabled=false
+```
+
+State: DRC 0 errors, 0 unconnected (one intended warning: J3 footprint differs from the library
+because its middle pin's copper is removed).
+
+- **106 x 66 mm**: the economizer's 76 x 66 plus a 30 mm overhang on the right (HV side). Same four M3
+  holes (69 x 59 grid) and stacking-header position as the economizer; two extra holes (H5, H6) support
+  the overhang. **H2, H4, H5, H6 are in the HV domain: nylon standoffs and screws.**
+- Notch over the economizer's J1 latch: x 25..51, y 0..8.
+- **LV | barrier | HV**: LV x < 31, copper-free gap x 31..39 (keep-out area), barrier parts centred on
+  x = 35 with milled 1.5 mm slots under them. All barrier parts have >= 8 mm creepage.
+- HV zone A (x 39..59): LDO, MCU, ADC, sense low ends. Zone B: two TPSI2140, the five HV strings as
+  horizontal rows (HV end on the right), HV connectors on the right edge.
+- **J3 (HV+/HV-) and J4 (E/KE) on the right edge**, facing out; J3's unused middle position has no copper,
+  so HV+ and HV- are 6 mm apart.
+- HV netclass: 2.5 mm to everything (IEC 60664-1, PD2, material group III, 500 V row - **verify**).
+  `hw/imd.kicad_dru` relaxes this to 0.5 mm only between neighbouring nodes of the same string
+  (<= 112 V apart) and to 1.0 mm between E and KE (same potential except during a wire-break fault).
+- HV tracks are hand-placed and locked in `gen_pcb.py` (`hv_routes`); the autorouter sees them as
+  obstacles. The low end of each string gets a locked escape stub + via.
+- Pours: GND (LV) both layers in the LV region; GND_HV on the bottom across the whole HV domain and on
+  the top in zone A plus a band below the strings. No pour between the HV strings on top.
+- The bottom-layer GND_HV pour sits at HV- potential, facing the economizer 15 mm below (its tallest
+  parts, J1 10 mm and C1 8 mm, leave >= 5 mm of air). Solder-masked; fine for 450 V, but do not mount
+  the stack on metal standoffs on the right-hand holes.
+- Mount in the HV contactor box; conformal-coat the HV side after testing (keep J3/J4/J5 clear).
+
+Before ordering:
+1. LCSC part numbers for the generic passives, SS14/SS16/SMAJ24A, and an elevated 2x6 header
+   (BOM rows without one are not assembled).
+2. JLCPCB rotation check on the CPL preview (SOIC/TSSOP/TSOT orientations).
+3. Look at the 3D renders in `hw/fab/` and the routing in KiCad once yourself.
 
 ## Firmware (first pass)
 

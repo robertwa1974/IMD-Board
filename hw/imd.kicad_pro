@@ -533,6 +533,44 @@
       },
       {
         "bus_width": 12,
+        "clearance": 0.2,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "GndHV",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": -1,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.4,
+        "tuning_profile": "",
+        "via_diameter": 0.7,
+        "via_drill": 0.35,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
+        "clearance": 2.5,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "line_style": 0,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "name": "HV",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "priority": -1,
+        "schematic_color": "rgba(0, 0, 0, 0.000)",
+        "track_width": 0.5,
+        "tuning_profile": "",
+        "via_diameter": 0.8,
+        "via_drill": 0.4,
+        "wire_width": 6
+      },
+      {
+        "bus_width": 12,
         "clearance": 0.25,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
@@ -544,10 +582,10 @@
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": -1,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.8,
+        "track_width": 0.6,
         "tuning_profile": "",
-        "via_diameter": 0.9,
-        "via_drill": 0.45,
+        "via_diameter": 0.8,
+        "via_drill": 0.4,
         "wire_width": 6
       }
     ],
@@ -559,39 +597,123 @@
     "netclass_patterns": [
       {
         "netclass": "Power",
-        "pattern": "+12V_IN"
+        "pattern": "12V_IN"
       },
       {
         "netclass": "Power",
-        "pattern": "VBB"
+        "pattern": "VLV"
       },
       {
         "netclass": "Power",
-        "pattern": "COIL1_P"
+        "pattern": "BUCK_SW"
       },
       {
         "netclass": "Power",
-        "pattern": "COIL1_N"
+        "pattern": "5V_LV"
       },
       {
         "netclass": "Power",
-        "pattern": "COIL2_P"
+        "pattern": "IMD_MHS"
       },
       {
         "netclass": "Power",
-        "pattern": "COIL2_N"
+        "pattern": "IMD_OKHS"
       },
       {
         "netclass": "Power",
-        "pattern": "NODE_X_1"
+        "pattern": "MHS_HS"
       },
       {
         "netclass": "Power",
-        "pattern": "NODE_X_2"
+        "pattern": "OKHS_HS"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "HV_P"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "E"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "KE"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "R0P_SW"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "R0N_SW"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "R0P_1"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "R0P_2"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "R0P_3"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "R0N_1"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "R0N_2"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "R0N_3"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "VBUS_1"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "VBUS_2"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "VBUS_3"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "VE_1"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "VE_2"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "VE_3"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "VKE_1"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "VKE_2"
+      },
+      {
+        "netclass": "HV",
+        "pattern": "VKE_3"
       },
       {
         "netclass": "Gnd",
         "pattern": "GND"
+      },
+      {
+        "netclass": "GndHV",
+        "pattern": "GND_HV"
       }
     ]
   },

@@ -4,7 +4,7 @@ An insulation monitoring device for DIY EV conversions. It measures the insulati
 HV+ and HV- to chassis using a switched-resistor bridge, and has Bender IR155-compatible outputs
 (MHS PWM + OKHS). It stacks on the contactor economizer board, or runs stand-alone.
 
-**Status:** first-pass schematic (no PCB yet); firmware core written and host-tested, not yet run on hardware. DIY and uncertified: not a substitute for a
+**Status:** rev A first pass: schematic, routed 106 x 66 mm PCB (JLCPCB outputs in `hw/fab/`), firmware core host-tested. Nothing built or run on hardware yet. DIY and uncertified: not a substitute for a
 certified IMD in a product.
 
 | Path | What |

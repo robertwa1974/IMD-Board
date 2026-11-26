@@ -22,7 +22,7 @@ A Bender-like insulation monitoring device (IMD) for DIY EV conversions:
 - Open-source friendly; stacks on top of the economizer board but must also work stand-alone.
 
 Target first vehicle: son's truck, 96S lithium pack (~400 V nominal), Lexus GS450h inverter/motors.
-Design for up to ~450 V now; keep the 800 V option open in part choices where cheap.
+Design for up to ~450 V (96S NMC, max 403 V). The 800 V option was dropped on 2026-11-26.
 
 Thresholds (FMVSS 305 / ECE R100 / ISO 6469-3): fault < 100 ohm/V DC-only, warn < 500 ohm/V.
 At 400 V: fault ~40 kohm, warn ~200 kohm.
@@ -199,9 +199,10 @@ The same decoder reads the DIY IMD later, since outputs are IR155-compatible.
 2. Verify all IR155 encodings and the duty->R formula against Bender D00376.
 3. Build the ESP32 decoder for the M5Dial; bench-test with the IR155 + decade box
    (1 M, 300 k, 100 k, 50 k from HV+ to chassis; confirm OKHS drops near 100 k; pull E or KE -> 50 Hz).
-4. IMD schematic: FIRST PASS DONE (see `DESIGN_NOTES.md` for decisions: R0 500k, 5 MOhm sense
+4. IMD schematic + PCB: FIRST PASS DONE (see `DESIGN_NOTES.md` for decisions: R0 480k, 4.8 MOhm sense
    strings, TPSI2140-Q1 switches instead of PhotoMOS, external ADS1220, E/KE dual divider for
-   chassis-loss detection). Open: review, then PCB layout with the creepage rules in DESIGN_NOTES.
+   chassis-loss detection; 106 x 66 mm board overhanging the economizer by 30 mm). Open: review,
+   LCSC numbers for the generic parts, then order.
 5. IMD firmware: FIRST PASS DONE (`src/imd/`, `lib/imd_core/`, see DESIGN_NOTES "Firmware").
    Host-tested against a simulated vehicle; not yet run on a Nucleo or the board.
 6. Optional later: CAN output (STM32G0B1 + isolated CAN) and a ZombieVerter firmware module that

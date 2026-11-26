@@ -21,8 +21,8 @@ struct Plant {
   float vbus = 400.0f;
   float rp = 20e6f, rn = 20e6f;
   float cy = 200e-9f;           // total Y-capacitance (both rails, they are in parallel here)
-  float r0 = 500e3f;
-  float rdivE = 5.018e6f, rdivKE = 5.018e6f;
+  float r0 = 480e3f;
+  float rdivE = 4.818e6f, rdivKE = 4.818e6f;
   bool eBroken = false, keBroken = false, switchDead = false;
   float noise = 0.0f;           // +/- volts of pseudo-random noise on every reading
   float vch = 0.0f;             // chassis voltage
@@ -93,7 +93,7 @@ static void assertRel(float expected, float actual, float rel) {
 // ------------------------------------------------------------------ bridge maths
 
 static void test_solve_matches_forward_model() {
-  const float r0 = 500e3f, rdiv = 2.509e6f;
+  const float r0 = 480e3f, rdiv = 2.409e6f;
   const float vals[] = {INFINITY, 20e6f, 1e6f, 200e3f, 40e3f, 10e3f};
   for (float rp : vals) {
     for (float rn : vals) {
@@ -108,8 +108,8 @@ static void test_solve_matches_forward_model() {
 }
 
 static void test_solve_rejects_identical_phases() {
-  TEST_ASSERT_FALSE(solveBridge(0.3f, 0.3f, 500e3f, 2.509e6f).ok);
-  TEST_ASSERT_FALSE(solveBridge(NAN, 0.1f, 500e3f, 2.509e6f).ok);
+  TEST_ASSERT_FALSE(solveBridge(0.3f, 0.3f, 480e3f, 2.409e6f).ok);
+  TEST_ASSERT_FALSE(solveBridge(NAN, 0.1f, 480e3f, 2.409e6f).ok);
 }
 
 static void test_extrapolate_exponential() {

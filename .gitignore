@@ -8,3 +8,7 @@ _autosave-*
 __pycache__/
 hw/erc.rpt
 hw/imd.net
+hw/imd.dsn
+hw/imd_placed.kicad_p*
+hw/imd_placed.kicad_dru
+hw/fab/gerbers/

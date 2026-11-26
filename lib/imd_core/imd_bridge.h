@@ -22,7 +22,7 @@ struct Insulation {
   bool ok = false;      // false: the two phases cannot be told apart (switch fault?)
 };
 
-// Minimum a - c for a usable solution. With R0 = 500k, Rdiv = 2.5M the real difference is
+// Minimum a - c for a usable solution. With R0 = 480k, Rdiv = 2.4M the real difference is
 // >= 0.04 down to Rp = Rn = 10 kOhm; a stuck R0 switch gives ~0.
 constexpr float kMinPhaseDelta = 0.01f;
 

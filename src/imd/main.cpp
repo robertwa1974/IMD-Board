@@ -19,8 +19,8 @@ constexpr uint32_t CONT1 = PB4, CONT2 = PB5, INHIBIT = PB6;
 constexpr uint32_t LED_HB = PB7;
 }  // namespace pins
 
-// Sense divider: 5 x 1 MOhm over 18 kOhm (all three channels identical).
-constexpr float kDivGain = (5.0e6f + 18.0e3f) / 18.0e3f;
+// Sense divider: 4 x 1.2 MOhm over 18 kOhm (all three channels identical).
+constexpr float kDivGain = (4.8e6f + 18.0e3f) / 18.0e3f;
 constexpr uint32_t kAdcTimeoutMs = 50;      // 90 SPS single-shot is ~11 ms
 constexpr uint32_t kMhsTickHz = 100000;     // PWM timer tick: 10 Hz = 10000 ticks (16-bit OK)
 
