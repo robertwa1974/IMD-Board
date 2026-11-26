@@ -264,8 +264,56 @@ mis-built R0, Rdiv and channel gains; rejection of wrong wiring, a leaky bench c
 no HV). Checked that the tests catch a disabled earth check, a disabled OKHS trip and a disabled
 transient check.
 
-Not done yet: ADS1220 AVDD/reference self-monitor, UART protocol to the economizer, MHS/OKHS
-behaviour verified against Bender D00376, bench run on a Nucleo-G031K8.
+Not done yet: ADS1220 AVDD/reference self-monitor, MHS/OKHS behaviour verified against Bender
+D00376, bench run on a Nucleo-G031K8 (procedure: `BENCH_TEST.md`).
+
+## UART protocol (IMD <-> economizer)
+
+**Information only.** The safety path stays on the dedicated wires (IMD_OK, IMD_INHIBIT,
+CONTx_CLOSED); the economizer never acts on anything it reads from the UART, so a dead, noisy or
+misconfigured link can never block or open a contactor.
+
+115200 8N1, 3.3 V, stacking-header pins 9 (economizer TX -> IMD) and 10 (IMD -> economizer), through
+the ISO7721. On a Nucleo the same UART is the ST-Link USB serial port.
+
+From the IMD:
+
+| Line | When | What |
+|---|---|---|
+| `$IMD,...*CS` | every 500 ms, always | status frame for the economizer (below) |
+| `# IMD mode=...` | every 1 s, `LOG OFF` silences it | human status line (the one documented above) |
+| plain text | on demand | replies to commands (`CAL ...`, `LOG ...`, errors, start-up banner) |
+
+Frame (`lib/imd_core/imd_proto.h` is the definition; the economizer carries a copy in
+`lib/imd_proto/`, keep them identical and bump the version if the fields change):
+
+```
+$IMD,<ver>,<seq>,<mode>,<ok>,<state>,<rp>,<rn>,<vbus>,<age>,<flags>*<cs>
+$IMD,1,42,NORM,1,OK,20410,19870,3984,0,72*6F
+```
+
+| Field | Meaning |
+|---|---|
+| ver | 1 |
+| seq | 0..255, +1 per frame (gaps = lost frames) |
+| mode | what MHS shows: OFF NORM UV SSTG SSTB DEV EARTH |
+| ok | OKHS / IMD_OK as driven, 0/1 |
+| state | OK; DEG (no valid measurement for 60 s, last result held); INT (R0 interlock); CAL (calibrating) |
+| rp, rn | kOhm, INF = no measurable leakage, - = no result yet |
+| vbus | 0.1 V |
+| age | s since the last valid measurement |
+| flags | hex: 01 system scope, 02 settled, 04 relaxed, 08 inhibited, 10 gain-cal, 20 bridge-cal, 40 has result |
+| cs | XOR of the characters between `$` and `*`, 2 hex digits |
+
+The parser is strict (prefix, version, exactly 11 fields, codes, number ranges, checksum); host tests
+(`test/test_proto`) check every single-bit corruption of a frame is rejected, and that a valid
+checksum does not rescue a malformed field.
+
+To the IMD: one command per line (`LOG ON|OFF`, `CAL ...`). The economizer forwards them with
+`imd send <text>` and refuses `imd send CAL ...` unless both contactor channels are off.
+
+Economizer side (its firmware v3.1, `OPERATORS_MANUAL.md` section 8.5): `imd` shows the last frame,
+the 0.5 s status line ends with mode and Rp/Rn, `link=LOST` after 2 s without a valid frame.
 
 ## Calibration
 

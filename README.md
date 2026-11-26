@@ -14,7 +14,8 @@ certified IMD in a product.
 | `hw/` | KiCad 10 schematic generated from `hw/design.py` (`imd_schematic.pdf` to view) |
 | `src/imd/`, `lib/imd_core/` | IMD board firmware (STM32G031) and its host-testable core |
 | `lib/ir155_decoder/`, `src/m5dial/` | IR155 MHS decoder for an M5Dial (ESP32-S3) |
-| `test/` | Host unit tests: decoder, bridge maths, state machine vs. a simulated vehicle |
+| `test/` | Host unit tests: decoder, bridge maths, state machine vs. a simulated vehicle, UART frames |
+| `BENCH_TEST.md` | Bench test of the IMD firmware on a Nucleo-G031K8 with a scaled low-voltage bridge (no HV) |
 
 ```
 pio run -e imd             # IMD firmware (bench: Nucleo-G031K8, upload with -t upload)

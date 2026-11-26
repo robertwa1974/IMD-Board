@@ -144,8 +144,8 @@ Stacking header signals (pin numbers = economizer J4, economizer hw/design.py re
 | 5   | CONT1_CLOSED   | CONT1_CLOSED   | in                  | 3.3 V  | Coil 1 energised at >= 60 % hold current (NOT proof of contact closure) |
 | 6   | CONT2_CLOSED   | CONT2_CLOSED   | in                  | 3.3 V  | Same for channel 2. Channel-to-contactor mapping is documented, not fixed |
 | 7   | IMD_INHIBIT    | IMD_INHIBIT    | in                  | 3.3 V  | High = stop measuring (e.g. DC fast charge). Economizer drives low for now |
-| 9   | IMD_TX         | UART_TO_IMD    | **in**              | 3.3 V  | Economizer USART1 TX (PB6) -> IMD RX. Reserved, no protocol yet |
-| 10  | IMD_RX         | UART_FROM_IMD  | **out**             | 3.3 V  | IMD TX -> economizer USART1 RX (PB7) |
+| 9   | IMD_TX         | UART_TO_IMD    | **in**              | 3.3 V  | Economizer USART1 TX (PB6) -> IMD RX: commands (`imd send`). See DESIGN_NOTES "UART protocol" |
+| 10  | IMD_RX         | UART_FROM_IMD  | **out**             | 3.3 V  | IMD TX -> economizer USART1 RX (PB7): `$IMD` status frames, information only |
 | 11  | IMD_MHS        | IMD_MHS        | out                 | ~12 V  | IR155-style PWM, passed straight to economizer J1 pin 4 (harness) |
 | 12  | IMD_OKHS       | IMD_OKHS       | out                 | ~12 V  | IR155-style status, passed straight to economizer J1 pin 11 |
 

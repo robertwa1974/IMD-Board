@@ -1,16 +1,21 @@
 // IMD board firmware (STM32G031K8, HV side). Pin map: DESIGN_NOTES.md "MCU pin map".
 //
 // Loop: ADS1220 round-robin VBUS / VE / VKE (single-shot, 90 SPS) -> imd::Monitor -> R0 switches,
-// MHS PWM, OKHS / IMD_OK. Status line on USART (PA2/PA3, through the ISO7721) once a second.
-// The independent watchdog resets the MCU if the loop stalls; reset releases every output low.
+// MHS PWM, OKHS / IMD_OK. The independent watchdog resets the MCU if the loop stalls; reset
+// releases every output low.
 //
-// Calibration (DESIGN_NOTES.md "Calibration") over the same UART, one command per line:
+// UART (PA2/PA3, through the ISO7721 to the stacking header; on a Nucleo: the ST-Link USB port):
+//   every 500 ms  "$IMD,..." status frame for the economizer (lib/imd_core/imd_proto.h)
+//   every 1 s     "# IMD ..." human status line (LOG OFF to silence it)
+//   replies       plain text
+// Commands, one per line:
+//   LOG ON | LOG OFF  human status line on / off (frames are always sent)
 //   CAL               show the stored calibration
 //   CAL GAIN <volts>  E and KE tied to HV+, <volts> = HV+ to HV- read on a meter
 //   CAL BRIDGE <ohms> known resistor from HV+ to the floating E/KE node (k / M suffix allowed)
 //   CAL ABORT         stop a running step
 //   CAL CLEAR         forget the calibration (back to nominal values)
-// While a step runs the board is NOT monitoring: MHS shows device error (40 Hz), OKHS/IMD_OK low.
+// While a CAL step runs the board is NOT monitoring: MHS shows device error (40 Hz), OKHS/IMD_OK low.
 #include <Arduino.h>
 #include <SPI.h>
 #include <IWatchdog.h>
@@ -20,6 +25,7 @@
 #include "ads1220.h"
 #include "imd_cal.h"
 #include "imd_monitor.h"
+#include "imd_proto.h"
 
 namespace pins {
 constexpr uint32_t VISO_MON = PA0;
@@ -80,7 +86,11 @@ static void setR0(bool p, bool n) {
   if (n) digitalWrite(pins::R0N_EN, HIGH);
 }
 
+static bool logOn = true;      // human "# IMD ..." line; the $IMD frames are always sent
+static bool okDriven = false;  // what OKHS / IMD_OK actually show (for the status frame)
+
 static void setOk(bool ok) {
+  okDriven = ok;
   digitalWrite(pins::OKHS, ok ? HIGH : LOW);
   digitalWrite(pins::IMD_OK, ok ? HIGH : LOW);
 }
@@ -170,8 +180,13 @@ static void command(char* line) {
   for (char* c = line; *c && !(*c >= '0' && *c <= '9'); c++)
     if (*c >= 'a' && *c <= 'z') *c = (char)(*c - 'a' + 'A');
   char* arg = strchr(line, ' ');
+  if (!strcmp(line, "LOG ON") || !strcmp(line, "LOG OFF")) {
+    logOn = line[5] == 'N';
+    Serial.println(logOn ? "LOG on" : "LOG off (frames continue)");
+    return;
+  }
   if (strncmp(line, "CAL", 3) != 0) {
-    Serial.println("? commands: CAL | CAL GAIN <V> | CAL BRIDGE <ohms> | CAL ABORT | CAL CLEAR");
+    Serial.println("? commands: LOG ON|OFF | CAL | CAL GAIN <V> | CAL BRIDGE <ohms> | CAL ABORT | CAL CLEAR");
     return;
   }
   while (arg && *arg == ' ') arg++;
@@ -222,6 +237,54 @@ static void pollSerial() {
       buf[n++] = c;
     }
   }
+}
+
+// ---------------------------------------------------------------- status frame (imd_proto.h)
+
+static imdproto::Mode protoMode(imd::MhsMode m) {
+  switch (m) {
+    case imd::MhsMode::Off:            return imdproto::Mode::Off;
+    case imd::MhsMode::Normal:         return imdproto::Mode::Normal;
+    case imd::MhsMode::Undervoltage:   return imdproto::Mode::Undervoltage;
+    case imd::MhsMode::SpeedStartGood: return imdproto::Mode::SstGood;
+    case imd::MhsMode::SpeedStartBad:  return imdproto::Mode::SstBad;
+    case imd::MhsMode::DeviceError:    return imdproto::Mode::DeviceError;
+    case imd::MhsMode::EarthFault:     return imdproto::Mode::EarthFault;
+  }
+  return imdproto::Mode::DeviceError;
+}
+
+static void sendFrame() {
+  static uint8_t seq = 0;
+  const imd::Status& s = monitor.status();
+  imdproto::Frame f;
+  f.seq = seq++;
+  f.ok = okDriven;
+  // Report what MHS actually shows: calibration and the interlock override the monitor.
+  if (mode != Mode::Run) {
+    f.state = imdproto::State::Calibrating;
+    f.mode = imdproto::Mode::DeviceError;
+  } else if (r0Interlock) {
+    f.state = imdproto::State::Interlock;
+    f.mode = imdproto::Mode::DeviceError;
+  } else {
+    f.state = s.stale ? imdproto::State::Degraded : imdproto::State::Ok;
+    f.mode = protoMode(s.mode);
+  }
+  if (s.haveResult) {
+    f.rpK = imdproto::ohmsToField(s.rp);
+    f.rnK = imdproto::ohmsToField(s.rn);
+  }
+  f.vbusDv = s.vbus > 0.0f ? (uint32_t)(s.vbus * 10.0f + 0.5f) : 0;
+  f.ageS = s.ageMs / 1000;
+  f.flags = (s.systemScope ? imdproto::kSystemScope : 0) | (s.lastSettled ? imdproto::kSettled : 0) |
+            (s.lastRelaxed ? imdproto::kRelaxed : 0) |
+            (s.phase == imd::Phase::Inhibited ? imdproto::kInhibited : 0) |
+            ((cal.flags & imd::Calibration::kGain) ? imdproto::kCalGain : 0) |
+            ((cal.flags & imd::Calibration::kBridge) ? imdproto::kCalBridge : 0) |
+            (s.haveResult ? imdproto::kHaveResult : 0);
+  char buf[imdproto::kMaxLine];
+  if (imdproto::format(f, buf, sizeof buf)) Serial.write(buf);
 }
 
 // ---------------------------------------------------------------- setup / loop
@@ -341,21 +404,29 @@ void loop() {
     }
   }
 
-  // ---- Status line and heartbeat, once a second.
+  // ---- Status frame for the economizer, every 500 ms.
+  static uint32_t tFrame = 0;
+  if (millis() - tFrame >= 500) {
+    tFrame = millis();
+    sendFrame();
+  }
+
+  // ---- Human status line and heartbeat, once a second.
   static uint32_t tLog = 0;
   static char bufP[12], bufN[12];
   if (millis() - tLog >= 1000) {
     tLog = millis();
     digitalWrite(pins::LED_HB, !digitalRead(pins::LED_HB));
+    if (!logOn) return;
     if (mode != Mode::Run) {
-      Serial.printf("CAL %s running, Vbus=%ld\n", mode == Mode::CalGain ? "GAIN" : "BRIDGE",
+      Serial.printf("# CAL %s running, Vbus=%ld\n", mode == Mode::CalGain ? "GAIN" : "BRIDGE",
                     (long)(v[0] * cal.gVbus));
       return;
     }
     const imd::Status& s = monitor.status();
     // state: ok | DEGRADED (no valid reading for 60 s, last one held) | INTERLOCK
     const char* state = r0Interlock ? "INTERLOCK" : s.stale ? "DEGRADED" : "ok";
-    Serial.printf("IMD mode=%s ok=%d state=%s age=%lus Rp=%s Rn=%s Vbus=%ld.%01ld fP=%ldppm fN=%ldppm scope=%s "
+    Serial.printf("# IMD mode=%s ok=%d state=%s age=%lus Rp=%s Rn=%s Vbus=%ld.%01ld fP=%ldppm fN=%ldppm scope=%s "
                   "cyc=%lu settled=%d relaxed=%d restarts=%lu err=%u/%u cal=%s%s\n",
                   imd::mhsModeName(s.mode), (int)(s.mode == imd::MhsMode::Normal && s.insOk && !r0Interlock),
                   state, (unsigned long)(s.ageMs / 1000),
